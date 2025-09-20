@@ -1,7 +1,6 @@
-﻿using System;
-using Sirenix.OdinInspector;
+﻿#if UNITY_EDITOR
 using UnityEditor;
-using UnityEngine;
+#endif
 
 namespace TrafficSimulation.Sim.Authoring;
 
@@ -32,6 +31,18 @@ public sealed class LaneAuthoring : MonoBehaviour {
     public LaneAuthoring? LeftLane => m_LeftLane;
     public LaneAuthoring? RightLane => m_RightLane;
     public float SpeedLimit => m_SpeedLimit;
+
+    [Button]
+    private void AssignLaneIds() {
+#if UNITY_EDITOR
+        var lanes = FindObjectsByType<LaneAuthoring>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        // ReSharper disable once CoVariantArrayConversion
+        Undo.RecordObjects(lanes, "Assign Lane IDs");
+        for (var i = 0; i < lanes.Length; i++) {
+            lanes[i].m_LaneId = i;
+        }
+#endif
+    }
 
     private void OnDrawGizmos() {
         if (!m_AlwaysDrawGizmos) return;
