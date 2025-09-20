@@ -1,0 +1,21 @@
+{
+    "name": "TrafficSimulation.Core.Editor",
+    "rootNamespace": "",
+    "references": [
+        "TrafficSimulation.Core",
+        "Vecerdi.Extensions.Logging",
+        "Unity.TextMeshPro",
+        "Unity.TextMeshPro.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
