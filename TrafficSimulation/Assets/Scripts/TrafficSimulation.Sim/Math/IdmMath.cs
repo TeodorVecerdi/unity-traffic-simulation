@@ -2,7 +2,7 @@
 using Unity.Burst;
 using Unity.Mathematics;
 
-namespace TrafficSimulation.Sim;
+namespace TrafficSimulation.Sim.Math;
 
 [BurstCompile]
 public static class IdmMath {
