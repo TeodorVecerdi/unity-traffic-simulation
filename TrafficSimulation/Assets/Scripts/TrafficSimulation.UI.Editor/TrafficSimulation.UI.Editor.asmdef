@@ -1,0 +1,20 @@
+{
+    "name": "TrafficSimulation.UI.Editor",
+    "rootNamespace": "",
+    "references": [
+        "TrafficSimulation.Core",
+        "TrafficSimulation.Core.Editor",
+        "TrafficSimulation.UI"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
