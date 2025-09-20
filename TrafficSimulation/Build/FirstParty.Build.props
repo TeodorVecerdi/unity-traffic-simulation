@@ -1,0 +1,61 @@
+<Project>
+    <!-- General -->
+    <PropertyGroup>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>preview</LangVersion>
+        <Deterministic>true</Deterministic>
+    </PropertyGroup>
+
+    <!-- Analysis -->
+    <PropertyGroup>
+        <WarningLevel>4</WarningLevel>
+        <AnalysisLevel>latest</AnalysisLevel>
+        <AnalysisMode>All</AnalysisMode>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+        <!-- Required to enable IDE0005 -->
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+        <NoWarn>$(NoWarn);
+            CA1002; <!-- Do not expose generic lists -->
+            CA1031; <!-- Do not catch general exception types -->
+            CA1034; <!-- Nested types should not be visible -->
+            CA1051; <!-- Do not declare visible instance fields -->
+            CA1054; <!-- URI parameters should not be strings -->
+            CA1056; <!-- URI properties should not be strings -->
+            CA1062; <!-- Validate arguments of public methods -->
+            CA1063; <!-- Implement IDisposable correctly -->
+            CA1303; <!-- Do not pass literals as localized parameters -->
+            CA1305; <!-- Specify IFormatProvider -->
+            CA1307; <!-- Specify StringComparison for clarity -->
+            CA1308; <!-- Normalize strings to uppercase -->
+            CA1515; <!-- Consider making public types internal -->
+            CA1707; <!-- Identifiers should not contain underscores -->
+            CA1716; <!-- Identifiers should not match keywords -->
+            CA1724; <!-- Type names should not match namespaces -->
+            CA1805; <!-- Do not initialize unnecessarily -->
+            CA1812; <!-- Avoid uninstantiated internal classes -->
+            CA1819; <!-- Properties should not return arrays -->
+            CA1848; <!-- Use the LoggerMessage delegates -->
+            CA1852; <!-- Seal internal types -->
+            CA1861; <!-- Prefer 'static readonly' fields over constant array arguments -->
+            CA2000; <!-- Dispose objects before losing scope -->
+            CA2007; <!-- Do not directly await a Task -->
+            CA2008; <!-- Do not create tasks without passing a TaskScheduler -->
+            CA2201; <!-- Do not raise reserved exception types -->
+            CA2208; <!-- Instantiate argument exceptions correctly -->
+            CA2225; <!-- Operator overloads have named alternates -->
+            CA2227; <!-- Collection properties should be read only -->
+            CA2234; <!-- Pass System.Uri objects instead of strings -->
+            CA5394; <!-- Do not use insecure randomness -->
+            CS1591; <!-- Missing XML comment for publicly visible type or member -->
+            IDE0010; <!-- Add missing cases to switch statement -->
+            IDE0022; <!-- Use expression body for methods -->
+            IDE0037; <!-- Use inferred member name -->
+            IDE0058; <!-- Remove unnecessary expression value -->
+            IDE0072; <!-- Add missing cases to switch statement -->
+        </NoWarn>
+    </PropertyGroup>
+</Project>

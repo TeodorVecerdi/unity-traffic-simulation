@@ -1,0 +1,8 @@
+<Project>
+    <Import Project=".\Build\FirstParty.Build.props" Condition="$(MSBuildProjectName.StartsWith('TrafficSimulation.')) Or $(MSBuildProjectName.StartsWith('Vecerdi.'))"/>
+    <Import Project=".\Build\ThirdParty.Build.props" Condition="!$(MSBuildProjectName.StartsWith('TrafficSimulation.')) And !$(MSBuildProjectName.StartsWith('Vecerdi.'))"/>
+
+    <PropertyGroup Condition="$(MSBuildProjectName.StartsWith('TrafficSimulation.')) Or $(MSBuildProjectName.StartsWith('Vecerdi.'))">
+        <LangVersion>preview</LangVersion>
+    </PropertyGroup>
+</Project>

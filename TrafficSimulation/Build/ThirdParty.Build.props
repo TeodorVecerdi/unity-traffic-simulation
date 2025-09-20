@@ -1,0 +1,6 @@
+<Project>
+    <PropertyGroup>
+        <WarningLevel>0</WarningLevel>
+        <Nullable>disable</Nullable>
+    </PropertyGroup>
+</Project>
