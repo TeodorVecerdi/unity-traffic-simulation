@@ -1,0 +1,21 @@
+{
+    "name": "TrafficSimulation.Sim",
+    "rootNamespace": "",
+    "references": [
+        "TrafficSimulation.Core",
+        "LitMotion",
+        "LitMotion.Extensions",
+        "UniTask",
+        "Vecerdi.Extensions.Logging",
+        "Vecerdi.Extensions.DependencyInjection"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
