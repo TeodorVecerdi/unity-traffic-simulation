@@ -711,7 +711,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a486d97e1b9d43a49ed4c37e36fb36cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TrafficSimulation.Sim::TrafficSimulation.Sim.Authoring.LaneAuthoring
-  m_LaneId: 0
+  m_LaneId: 3
   m_Length: 184
   m_Loop: 1
   m_LeftLane: {fileID: 1220921425}
@@ -1915,7 +1915,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a486d97e1b9d43a49ed4c37e36fb36cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TrafficSimulation.Sim::TrafficSimulation.Sim.Authoring.LaneAuthoring
-  m_LaneId: 0
+  m_LaneId: 2
   m_Length: 184
   m_Loop: 1
   m_LeftLane: {fileID: 2123894895}
@@ -2406,7 +2406,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a486d97e1b9d43a49ed4c37e36fb36cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TrafficSimulation.Sim::TrafficSimulation.Sim.Authoring.LaneAuthoring
-  m_LaneId: 0
+  m_LaneId: 1
   m_Length: 184
   m_Loop: 1
   m_LeftLane: {fileID: 0}
