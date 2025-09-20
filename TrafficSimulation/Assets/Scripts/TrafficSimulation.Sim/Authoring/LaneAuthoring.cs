@@ -8,7 +8,6 @@ public sealed class LaneAuthoring : MonoBehaviour {
     [Title("Core Properties")]
     [SerializeField] private int m_LaneId;
     [SerializeField, Unit(Units.Meter)] private float m_Length;
-    [SerializeField] private bool m_Loop;
 
     [Title("Connections")]
     [SerializeField] private LaneAuthoring? m_LeftLane;
@@ -27,7 +26,6 @@ public sealed class LaneAuthoring : MonoBehaviour {
 
     public int LaneId => m_LaneId;
     public float Length => m_Length;
-    public bool Loop => m_Loop;
     public LaneAuthoring? LeftLane => m_LeftLane;
     public LaneAuthoring? RightLane => m_RightLane;
     public float SpeedLimit => m_SpeedLimit;
