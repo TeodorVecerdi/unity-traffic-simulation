@@ -1,7 +1,11 @@
 {
   "dependencies": {
+    "com.5pdev.menu-item-overrides": "https://github.com/Alexejhero/Menu-Item-Overrides.git?path=/Assets/MenuItemOverrides",
+    "com.annulusgames.lit-motion": "https://github.com/AnnulusGames/LitMotion.git?path=src/LitMotion/Assets/LitMotion",
+    "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
+    "com.github-glitchenzo.nugetforunity": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity",
     "com.unity.ide.rider": "3.0.38",
-    "com.unity.inputsystem": "1.14.1",
+    "com.unity.inputsystem": "1.14.2",
     "com.unity.render-pipelines.universal": "17.2.0",
     "com.unity.test-framework": "1.5.1",
     "com.unity.ugui": "2.0.0",
