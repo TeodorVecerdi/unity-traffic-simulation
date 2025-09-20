@@ -1,0 +1,18 @@
+﻿{
+    "name": "TrafficSimulation.DependencyInjection",
+    "rootNamespace": "",
+    "references": [
+        "TrafficSimulation.Core",
+        "TrafficSimulation.UI",
+        "Vecerdi.Extensions.DependencyInjection"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
