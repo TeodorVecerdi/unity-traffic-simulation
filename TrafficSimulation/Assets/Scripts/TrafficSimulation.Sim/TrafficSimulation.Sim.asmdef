@@ -1,10 +1,12 @@
-﻿{
-    "name": "TrafficSimulation.DependencyInjection",
+{
+    "name": "TrafficSimulation.Sim",
     "rootNamespace": "",
     "references": [
         "TrafficSimulation.Core",
-        "TrafficSimulation.UI",
-        "TrafficSimulation.Sim",
+        "LitMotion",
+        "LitMotion.Extensions",
+        "UniTask",
+        "Vecerdi.Extensions.Logging",
         "Vecerdi.Extensions.DependencyInjection"
     ],
     "includePlatforms": [],
