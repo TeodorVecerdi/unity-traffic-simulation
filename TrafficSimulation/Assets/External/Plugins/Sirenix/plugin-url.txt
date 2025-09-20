@@ -1,0 +1,3 @@
+﻿Get Odin Inspector and Serializer:
+- On Sirenix's website: https://odininspector.com/
+- On the Unity Asset Store: https://assetstore.unity.com/packages/tools/utilities/odin-inspector-and-serializer-89041

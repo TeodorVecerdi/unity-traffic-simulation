@@ -11,6 +11,18 @@ Assets/AddressableAssetsData/Windows/
 /Logs/
 /Builds/
 
+Assets/External/Plugins/Sirenix/**
+!Assets/External/Plugins/Sirenix/plugin-url.txt
+!Assets/External/Plugins/Sirenix/plugin-url.txt.meta
+
+Assets/External/Plugins/ConsolePro/**
+!Assets/External/Plugins/ConsolePro/plugin-url.txt
+!Assets/External/Plugins/ConsolePro/plugin-url.txt.meta
+
+Packages/vhierarchy/**
+!Packages/vhierarchy/plugin-url.txt
+!Packages/vhierarchy/plugin-url.txt.meta
+
 *.pdb
 *.pdb.meta
 *.unitypackage
