@@ -1,0 +1,9 @@
+[submodule "TrafficSimulation/Assets/Scripts/Vecerdi.Extensions.DependencyInjection"]
+	path = TrafficSimulation/Assets/Scripts/Vecerdi.Extensions.DependencyInjection
+	url = https://github.com/TeodorVecerdi/Vecerdi.Extensions.DependencyInjection.git
+[submodule "TrafficSimulation/Assets/Scripts/Vecerdi.Extensions.Logging"]
+	path = TrafficSimulation/Assets/Scripts/Vecerdi.Extensions.Logging
+	url = https://github.com/TeodorVecerdi/Vecerdi.Extensions.Logging.git
+[submodule "TrafficSimulation/Assets/Scripts/Vecerdi.CommandPalette"]
+	path = TrafficSimulation/Assets/Scripts/Vecerdi.CommandPalette
+	url = https://github.com/TeodorVecerdi/Vecerdi.CommandPalette.git

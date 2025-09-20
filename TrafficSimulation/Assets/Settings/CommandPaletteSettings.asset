@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-2788831570652211353
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09ae52190df940abbfba7e683e46fcf8, type: 3}
+  m_Name: CommandsPluginSettings
+  m_EditorClassIdentifier: Vecerdi.CommandPalette.Basic::Vecerdi.CommandPalette.Basic.Settings.CommandsPluginSettings
+  m_SearchCutoff: 80
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49f403ffab5e484ba9f552c18e65a239, type: 3}
+  m_Name: CommandPaletteSettings
+  m_EditorClassIdentifier: Vecerdi.CommandPalette::Vecerdi.CommandPalette.Settings.CommandPaletteSettings
+  m_ClearSearchOnSelection: 1
+  m_DownSamplePasses: 1
+  m_Passes: 8
+  m_BlurSize: 1
+  m_EnableTint: 0
+  m_TintAmount: 0
+  m_Tint: {r: 0, g: 0, b: 0, a: 1}
+  m_EnableVibrancy: 0
+  m_Vibrancy: 0
+  m_EnableNoise: 1
+  m_NoiseTexture: {fileID: 2800000, guid: 5bc4f5af35340ea40abc31334a20c3c5, type: 3}
+--- !u!114 &4040539397666210715
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce3db4b7ff109ce47aed20136c59df09, type: 3}
+  m_Name: UnitConversionSettings
+  m_EditorClassIdentifier: Vecerdi.CommandPalette.Units::Vecerdi.CommandPalette.Units.Settings.UnitConversionSettings
+  m_RemToPxRatio: 16
+--- !u!114 &6504759789797970567
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e3c1f1c66874b548210f49c440bd8e9, type: 3}
+  m_Name: MathPluginSettings
+  m_EditorClassIdentifier: Vecerdi.CommandPalette.Math::Vecerdi.CommandPalette.Math.Settings.MathPluginSettings
+  m_DisplayDecimalPlaces: 8
+  m_CopyDecimalPlaces: 28
