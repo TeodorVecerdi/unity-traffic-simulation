@@ -667,6 +667,62 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 5709b6b8033c2ad4e9790ad9b73327a6, type: 3}
   m_PrefabInstance: {fileID: 299728648}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &318339416
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 318339417}
+  - component: {fileID: 318339418}
+  m_Layer: 0
+  m_Name: Lane+X2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &318339417
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 318339416}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.70710677, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -92, y: 0.1, z: -1.25}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 2099351332}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+--- !u!114 &318339418
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 318339416}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a486d97e1b9d43a49ed4c37e36fb36cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TrafficSimulation.Sim::TrafficSimulation.Sim.Authoring.LaneAuthoring
+  m_LaneId: 0
+  m_Length: 184
+  m_Loop: 1
+  m_LeftLane: {fileID: 1220921425}
+  m_RightLane: {fileID: 0}
+  m_SpeedLimit: 20
+  m_LaneGizmoColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  m_GizmoSize: 0.2
+  m_DrawConnections: 1
+  m_ConnectionGizmoColor: {r: 0, g: 1, b: 1, a: 1}
+  m_ConnectionGizmoSize: 0.1
+  m_AlwaysDrawGizmos: 1
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -1541,6 +1597,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: e0f045188d2373a4db46e5ac0ea94db3, type: 3}
   m_PrefabInstance: {fileID: 743418287}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &762171212
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 762171213}
+  m_Layer: 0
+  m_Name: Environment
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &762171213
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 762171212}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -1784,6 +1871,62 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 932bf7b59c1a95b4badb160034564ea6, type: 3}
   m_PrefabInstance: {fileID: 868586190}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &878900921
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 878900922}
+  - component: {fileID: 878900923}
+  m_Layer: 0
+  m_Name: Lane+Z2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &878900922
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 878900921}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1.25, y: 0.1, z: -92}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 2099351332}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &878900923
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 878900921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a486d97e1b9d43a49ed4c37e36fb36cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TrafficSimulation.Sim::TrafficSimulation.Sim.Authoring.LaneAuthoring
+  m_LaneId: 0
+  m_Length: 184
+  m_Loop: 1
+  m_LeftLane: {fileID: 2123894895}
+  m_RightLane: {fileID: 0}
+  m_SpeedLimit: 20
+  m_LaneGizmoColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  m_GizmoSize: 0.2
+  m_DrawConnections: 1
+  m_ConnectionGizmoColor: {r: 0, g: 1, b: 1, a: 1}
+  m_ConnectionGizmoSize: 0.1
+  m_AlwaysDrawGizmos: 1
 --- !u!1001 &958865032
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2234,6 +2377,62 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4dfdfead3bfce2746b6709ca2c0af194, type: 3}
   m_PrefabInstance: {fileID: 1197296495}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1220921424
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1220921426}
+  - component: {fileID: 1220921425}
+  m_Layer: 0
+  m_Name: Lane+X1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1220921425
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1220921424}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a486d97e1b9d43a49ed4c37e36fb36cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TrafficSimulation.Sim::TrafficSimulation.Sim.Authoring.LaneAuthoring
+  m_LaneId: 0
+  m_Length: 184
+  m_Loop: 1
+  m_LeftLane: {fileID: 0}
+  m_RightLane: {fileID: 318339418}
+  m_SpeedLimit: 30
+  m_LaneGizmoColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  m_GizmoSize: 0.2
+  m_DrawConnections: 1
+  m_ConnectionGizmoColor: {r: 0, g: 1, b: 1, a: 1}
+  m_ConnectionGizmoSize: 0.1
+  m_AlwaysDrawGizmos: 1
+--- !u!4 &1220921426
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1220921424}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.70710677, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -92, y: 0.1, z: 1.25}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 2099351332}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!1001 &1228003765
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2420,6 +2619,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 932bf7b59c1a95b4badb160034564ea6, type: 3}
   m_PrefabInstance: {fileID: 1396999725}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1411431579
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1411431580}
+  m_Layer: 0
+  m_Name: Basic Scene Setup
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1411431580
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1411431579}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1420335430
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2494,6 +2724,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 8acc752a5945553488ce9473becc57af, type: 3}
   m_PrefabInstance: {fileID: 1420335430}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1433128250
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1433128251}
+  m_Layer: 0
+  m_Name: Simulation Authoring
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1433128251
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1433128250}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1490947146
 GameObject:
   m_ObjectHideFlags: 0
@@ -3572,13 +3833,108 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: e8e3fb15eb490a048af2534e911ee694, type: 3}
   m_PrefabInstance: {fileID: 2082662073}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2099351331
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2099351332}
+  m_Layer: 0
+  m_Name: Lanes
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2099351332
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2099351331}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children:
+  - {fileID: 2123894896}
+  - {fileID: 878900922}
+  - {fileID: 1220921426}
+  - {fileID: 318339417}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2123894894
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2123894896}
+  - component: {fileID: 2123894895}
+  m_Layer: 0
+  m_Name: Lane+Z1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2123894895
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2123894894}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a486d97e1b9d43a49ed4c37e36fb36cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TrafficSimulation.Sim::TrafficSimulation.Sim.Authoring.LaneAuthoring
+  m_LaneId: 0
+  m_Length: 184
+  m_Loop: 1
+  m_LeftLane: {fileID: 0}
+  m_RightLane: {fileID: 878900923}
+  m_SpeedLimit: 30
+  m_LaneGizmoColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  m_GizmoSize: 0.2
+  m_DrawConnections: 1
+  m_ConnectionGizmoColor: {r: 0, g: 1, b: 1, a: 1}
+  m_ConnectionGizmoSize: 0.1
+  m_AlwaysDrawGizmos: 1
+--- !u!4 &2123894896
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2123894894}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1.25, y: 0.1, z: -92}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 2099351332}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
+  - {fileID: 1411431580}
   - {fileID: 330585546}
   - {fileID: 410087041}
   - {fileID: 832575519}
   - {fileID: 1490947148}
+  - {fileID: 762171213}
   - {fileID: 49977001}
   - {fileID: 1687314398}
+  - {fileID: 1433128251}
+  - {fileID: 2099351332}
