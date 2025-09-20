@@ -1,4 +1,5 @@
 ﻿using TrafficSimulation.Core;
+using TrafficSimulation.Sim;
 using TrafficSimulation.UI;
 using UnityEngine;
 using Vecerdi.Extensions.DependencyInjection;
@@ -12,6 +13,7 @@ internal static class DependencyInjectionTypeContextResolverManager {
         ServiceManager.Resolver = new TypeInjectorResolverCombiner(
             new TrafficSimulationCoreTypeInjectorResolverContext(),
             new TrafficSimulationUITypeInjectorResolverContext(),
+            new TrafficSimulationSimTypeInjectorResolverContext(),
             new ReflectionTypeInjectorResolver()
         );
     }

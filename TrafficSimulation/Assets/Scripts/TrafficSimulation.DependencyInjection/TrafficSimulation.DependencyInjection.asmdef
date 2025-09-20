@@ -4,6 +4,7 @@
     "references": [
         "TrafficSimulation.Core",
         "TrafficSimulation.UI",
+        "TrafficSimulation.Sim",
         "Vecerdi.Extensions.DependencyInjection"
     ],
     "includePlatforms": [],
