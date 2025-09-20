@@ -56,10 +56,10 @@ function _run_unity {
     Write-Host "Running project: unity"
                 
     # Use the Unity project path from environment
-    $unityProjectPath = $env:MEDIA_VAULT_UNITY_PROJECT_DIR
+    $unityProjectPath = $env:TRAFFIC_SIM_UNITY_PROJECT_DIR
                 
     if (-not $unityProjectPath) {
-        Write-Error "MEDIA_VAULT_UNITY_PROJECT_DIR environment variable not set. Make sure to run the activate script first."
+        Write-Error "TRAFFIC_SIM_UNITY_PROJECT_DIR environment variable not set. Make sure to run the activate script first."
         return
     }
                 
@@ -117,9 +117,9 @@ function _run_rider {
         return
     }
 
-    $unityProjectPath = Resolve-Path $env:MEDIA_VAULT_UNITY_PROJECT_DIR
+    $unityProjectPath = Resolve-Path $env:TRAFFIC_SIM_UNITY_PROJECT_DIR
     if (-not $unityProjectPath) {
-        Write-Error "MEDIA_VAULT_UNITY_PROJECT_DIR environment variable not set. Make sure to run the activate script first."
+        Write-Error "TRAFFIC_SIM_UNITY_PROJECT_DIR environment variable not set. Make sure to run the activate script first."
         return
     }
 
