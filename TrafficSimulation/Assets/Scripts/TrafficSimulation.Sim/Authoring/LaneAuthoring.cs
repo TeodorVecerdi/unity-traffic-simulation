@@ -93,7 +93,7 @@ public sealed class LaneAuthoring : MonoBehaviour {
 
         if (m_RightLane != null) {
             var axis = m_RightLane.transform;
-            var rightLanePoint = ProjectPointOntoAxisClamped(axis, m_RightLane.Length, lanePoint);
+            var rightLanePoint = ProjectPointOntoAxisClamped(axis, m_RightLane.m_Length, lanePoint);
             Gizmos.DrawLine(lanePoint, rightLanePoint);
             DrawArrowHead(lanePoint, (rightLanePoint - lanePoint) * 0.5f + lanePoint);
             Gizmos.DrawSphere(rightLanePoint, m_ConnectionGizmoSize);

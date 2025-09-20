@@ -205,8 +205,9 @@ public sealed class VehicleAuthoring : MonoBehaviour {
             return;
         if (m_InitialPosition < 0.0f || m_InitialPosition > m_Lane.Length)
             return;
-        var position = m_Lane.transform.position + m_Lane.transform.forward * m_InitialPosition;
-        DrawCarBox(position, m_Lane.transform.forward, m_Lane.transform.right, m_Length, m_VehicleWidth, m_VehicleColor);
+        var laneTransform = m_Lane.transform;
+        var position = laneTransform.position + laneTransform.forward * m_InitialPosition;
+        DrawCarBox(position, laneTransform.forward, laneTransform.right, m_Length, m_VehicleWidth, m_VehicleColor);
     }
 
     private static void DrawCarBox(Vector3 center, Vector3 forward, Vector3 right, float length, float width, Color color) {
