@@ -38,11 +38,11 @@ public struct IntelligentDriverModelJob : IJobParallelFor {
         var incomingHazardVehicleIndex = -1;
         var nearestAheadCenterDistance = float.MaxValue;
         if (lane.LeftLaneIndex >= 0) {
-            ScanLaneForIncomingHazard(lane.LeftLaneIndex, index, self.LaneIndex, self.Position, lane.Length, ref incomingHazardVehicleIndex, ref nearestAheadCenterDistance);
+            ScanLaneForIncomingHazard(lane.LeftLaneIndex, index, self.LaneIndex, self.Position, ref incomingHazardVehicleIndex, ref nearestAheadCenterDistance);
         }
 
         if (lane.RightLaneIndex >= 0) {
-            ScanLaneForIncomingHazard(lane.RightLaneIndex, index, self.LaneIndex, self.Position, lane.Length, ref incomingHazardVehicleIndex, ref nearestAheadCenterDistance);
+            ScanLaneForIncomingHazard(lane.RightLaneIndex, index, self.LaneIndex, self.Position, ref incomingHazardVehicleIndex, ref nearestAheadCenterDistance);
         }
 
         if (incomingHazardVehicleIndex >= 0) {
@@ -56,10 +56,11 @@ public struct IntelligentDriverModelJob : IJobParallelFor {
         Accelerations[index] = baseAcceleration;
     }
 
-    private void ScanLaneForIncomingHazard(int laneIndex, int selfIndex, int selfLaneIndex, float selfPosition, float laneLength, ref int bestHazardIndex, ref float bestAheadCenterDistance) {
+    private void ScanLaneForIncomingHazard(int laneIndex, int selfIndex, int selfLaneIndex, float selfPosition, ref int bestHazardIndex, ref float bestAheadCenterDistance) {
         if (laneIndex < 0) return;
 
         var range = LaneRanges[laneIndex];
+        var laneLength = Lanes[laneIndex].Length;
         var end = range.Start + range.Count;
 
         for (var i = range.Start; i < end; i++) {
