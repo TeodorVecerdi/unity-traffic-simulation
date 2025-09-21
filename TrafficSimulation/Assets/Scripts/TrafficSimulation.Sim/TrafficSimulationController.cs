@@ -191,18 +191,21 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
         var sourceTransform = sourceLane.transform;
         var targetTransform = targetLane.transform;
 
+        var sourcePosition = (float3)sourceTransform.position;
+        var targetPosition = (float3)targetTransform.position;
+        var sourceForward = (float3)sourceTransform.forward;
+        var sourceRight = (float3)sourceTransform.right;
+
         // Base curve frame at start s=0 (current longitudinal position on source lane)
-        var p0 = sourceTransform.position + sourceTransform.forward * vehicleState.Position;
-        var forward = sourceTransform.forward;
-        var left = -sourceTransform.right; // left in world based on source lane
+        var p0 = sourcePosition + sourceForward * vehicleState.Position;
 
         // Signed lateral offset from source to target lane center projected on left axis
-        var delta = targetTransform.position - sourceTransform.position;
-        var lateralOffset = Vector3.Dot(delta, left);
+        var delta = targetPosition - sourcePosition;
+        var lateralOffset = math.dot(delta, -sourceRight);
 
         laneChangeState.P0 = p0;
-        laneChangeState.Forward = forward;
-        laneChangeState.Left = left;
+        laneChangeState.Forward = sourceForward;
+        laneChangeState.Left = -sourceRight;
         laneChangeState.LateralOffset = lateralOffset;
     }
 
