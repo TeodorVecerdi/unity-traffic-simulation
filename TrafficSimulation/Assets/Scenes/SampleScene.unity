@@ -702,7 +702,7 @@ MonoBehaviour:
   m_InitialPosition: 97.6
   m_InitialSpeed: 10
   m_DesiredSpeed: 30
-  m_MaxAcceleration: 1.4
+  m_MaxAcceleration: 3
   m_ComfortableBraking: 2
   m_HeadwayTime: 1.6
   m_MinGap: 2
@@ -2141,7 +2141,7 @@ MonoBehaviour:
   m_InitialPosition: 81
   m_InitialSpeed: 10
   m_DesiredSpeed: 30
-  m_MaxAcceleration: 1.4
+  m_MaxAcceleration: 3
   m_ComfortableBraking: 2
   m_HeadwayTime: 1.6
   m_MinGap: 2
@@ -2389,7 +2389,7 @@ MonoBehaviour:
   m_InitialPosition: 6.2
   m_InitialSpeed: 10
   m_DesiredSpeed: 30
-  m_MaxAcceleration: 1.4
+  m_MaxAcceleration: 3
   m_ComfortableBraking: 2
   m_HeadwayTime: 1.6
   m_MinGap: 2
@@ -3517,7 +3517,7 @@ MonoBehaviour:
   m_InitialPosition: 113.7
   m_InitialSpeed: 10
   m_DesiredSpeed: 30
-  m_MaxAcceleration: 1.4
+  m_MaxAcceleration: 3
   m_ComfortableBraking: 2
   m_HeadwayTime: 1.6
   m_MinGap: 2
@@ -3645,7 +3645,7 @@ MonoBehaviour:
   m_InitialPosition: 64.7
   m_InitialSpeed: 10
   m_DesiredSpeed: 30
-  m_MaxAcceleration: 1.8
+  m_MaxAcceleration: 3
   m_ComfortableBraking: 3
   m_HeadwayTime: 1
   m_MinGap: 0.5
@@ -3769,7 +3769,7 @@ MonoBehaviour:
   m_InitialPosition: 37.8
   m_InitialSpeed: 10
   m_DesiredSpeed: 25
-  m_MaxAcceleration: 1.4
+  m_MaxAcceleration: 3
   m_ComfortableBraking: 2
   m_HeadwayTime: 1.6
   m_MinGap: 2
@@ -3949,7 +3949,7 @@ MonoBehaviour:
   m_InitialPosition: 26.76
   m_InitialSpeed: 10
   m_DesiredSpeed: 25
-  m_MaxAcceleration: 1.4
+  m_MaxAcceleration: 3
   m_ComfortableBraking: 2
   m_HeadwayTime: 1.6
   m_MinGap: 2
@@ -4077,7 +4077,7 @@ MonoBehaviour:
   m_InitialPosition: 55.1
   m_InitialSpeed: 10
   m_DesiredSpeed: 25
-  m_MaxAcceleration: 1.4
+  m_MaxAcceleration: 3
   m_ComfortableBraking: 2
   m_HeadwayTime: 1.6
   m_MinGap: 2
