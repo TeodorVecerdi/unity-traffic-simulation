@@ -14,6 +14,9 @@ public struct IntelligentDriverModelJob : IJobParallelFor {
     [ReadOnly] public NativeArray<LaneInfo> Lanes;
     [ReadOnly] public NativeArray<LaneVehicleRange> LaneRanges;
     [ReadOnly] public NativeArray<LaneChangeState> LaneChangeStates;
+    [ReadOnly] public NativeArray<TrafficLightGroupParameters> TrafficLightGroupParameters;
+    [ReadOnly] public NativeArray<TrafficLightGroupState> TrafficLightGroupStates;
+    [ReadOnly] public NativeArray<TrafficLightLaneBinding> TrafficLightLaneBindings;
     public NativeArray<float> Accelerations;
 
     public void Execute(int index) {
@@ -56,6 +59,12 @@ public struct IntelligentDriverModelJob : IJobParallelFor {
             baseAcceleration = math.min(baseAcceleration, hazardAcceleration);
         }
 
+        // Apply traffic light constraints
+        var lightConstrainedAcceleration = ComputeTrafficLightConstrainedAcceleration(self, in idm, in lane);
+        if (!float.IsNaN(lightConstrainedAcceleration)) {
+            baseAcceleration = math.min(baseAcceleration, lightConstrainedAcceleration);
+        }
+
         Accelerations[index] = baseAcceleration;
     }
 
@@ -92,5 +101,51 @@ public struct IntelligentDriverModelJob : IJobParallelFor {
         var localIndex = selfIndex - range.Start;
         leaderIndex = range.Start + (localIndex + 1) % range.Count;
         return leaderIndex != selfIndex;
+    }
+
+    private float ComputeTrafficLightConstrainedAcceleration(in VehicleState self, in IdmParameters idm, in LaneInfo lane) {
+        var nearestDistanceAhead = float.MaxValue;
+        var selectedBindingIndex = -1;
+        // Find nearest stop line ahead on this lane
+        for (var i = 0; i < TrafficLightLaneBindings.Length; i++) {
+            var binding = TrafficLightLaneBindings[i];
+            if (binding.LaneIndex != self.LaneIndex)
+                continue;
+            var distanceAhead = MathUtilities.ComputeDistanceAlongLane(self.Position, binding.StopLinePositionMeters, lane.Length);
+            if (distanceAhead < nearestDistanceAhead) {
+                nearestDistanceAhead = distanceAhead;
+                selectedBindingIndex = i;
+            }
+        }
+
+        if (selectedBindingIndex < 0)
+            return float.NaN;
+
+        var selectedBinding = TrafficLightLaneBindings[selectedBindingIndex];
+        var groupParameters = TrafficLightGroupParameters[selectedBinding.GroupIndex];
+        var groupState = TrafficLightGroupStates[selectedBinding.GroupIndex];
+        var color = TrafficLightMath.EvaluateColor(groupState.TimeInCycleSeconds, in groupParameters);
+
+        var shouldTreatAsStop = false;
+        if (color == TrafficLightColor.Red) {
+            shouldTreatAsStop = true;
+        } else if (color == TrafficLightColor.Amber) {
+            // Determine if the vehicle can stop before the line using comfortable braking and buffer
+            var stoppingDistance = (self.Speed * self.Speed) / math.max(IdmMath.Epsilon, 2.0f * idm.ComfortableBraking);
+            var effectiveAvailable = math.max(0.0f, nearestDistanceAhead - 0.5f * self.Length - groupParameters.AmberStopBufferMeters);
+            if (effectiveAvailable >= stoppingDistance) {
+                shouldTreatAsStop = true;
+            }
+        }
+
+        if (!shouldTreatAsStop)
+            return float.NaN;
+
+        // Virtual stopped leader at stop line; apply buffer by reducing gap
+        var rawGap = MathUtilities.BumperGap(self.Position, self.Length, selectedBinding.StopLinePositionMeters, 0.0f, lane.Length);
+        var gap = math.max(IdmMath.Epsilon, rawGap - groupParameters.AmberStopBufferMeters);
+        var relativeSpeedToLeader = self.Speed - 0.0f;
+        var acceleration = IdmMath.AccelerationWithLeader(self.Speed, relativeSpeedToLeader, gap, lane.SpeedLimit, in idm);
+        return acceleration;
     }
 }
