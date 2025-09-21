@@ -16,6 +16,14 @@ public struct SortVehiclesAndUpdateLaneRangesJob : IJob {
     public NativeArray<LaneChangeState> LaneChangeStates;
 
     public void Execute() {
+        // All per-vehicle arrays must be aligned by index.
+        Hint.Assume(Vehicles.Length == IdmParameters.Length);
+        Hint.Assume(Vehicles.Length == MobilParameters.Length);
+        Hint.Assume(Vehicles.Length == LaneChangeStates.Length);
+
+        // LaneRanges must align with Lanes by index.
+        Hint.Assume(Lanes.Length == LaneRanges.Length);
+
         // 1. Sort vehicles by (LaneIndex, Position) and keep IdmParameters aligned by index
         DualSortByLaneAndPosition(0, Vehicles.Length - 1);
 
