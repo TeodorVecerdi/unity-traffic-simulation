@@ -22,13 +22,15 @@ public struct IntegrateVehicleStateJob : IJobParallelFor {
         self.Acceleration = Accelerations[index];
 
         // Integrate longitudinal state
+        var v0 = self.Speed;
         IntegrationMath.Integrate(DeltaTime, ref self, in lane);
+        var deltaS = (v0 + self.Speed) * 0.5f * DeltaTime;
 
         // Update lane change state
         var laneChangeState = LaneChangeStates[index];
         if (laneChangeState.Active) {
-            var currentSpeed = self.Speed;
-            IntegrationMath.Integrate(DeltaTime, ref laneChangeState.ProgressS, ref currentSpeed, self.Acceleration);
+            // Advance along lane-change curve by the same longitudinal Δs
+            laneChangeState.ProgressS += deltaS;
             var totalLen = math.max(0.1f, laneChangeState.LongitudinalLength);
             if (laneChangeState.ProgressS >= totalLen) {
                 // Complete lane change
@@ -37,6 +39,12 @@ public struct IntegrateVehicleStateJob : IJobParallelFor {
                 var currentCooldown = laneChangeState.Cooldown;
                 laneChangeState = default;
                 laneChangeState.Cooldown = math.max(currentCooldown, mobil.MinTimeBetweenLaneChanges);
+
+                // Re-wrap position in case the target lane length differs
+                var newLength = Lanes[self.LaneIndex].Length;
+                if (self.Position >= newLength) {
+                    self.Position -= newLength * math.floor(self.Position / newLength);
+                }
             }
         } else {
             // Tick cooldown
