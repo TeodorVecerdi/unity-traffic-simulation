@@ -228,6 +228,7 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
             IdmParameters = m_WorldState.IdmParameters,
             Lanes = m_WorldState.Lanes,
             LaneRanges = m_WorldState.LaneRanges,
+            LaneChangeStates = m_WorldState.LaneChangeStates,
             Accelerations = m_WorldState.Accelerations,
         }.Schedule(m_WorldState.Vehicles.Length, 64, sortVehiclesJob);
 

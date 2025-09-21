@@ -13,6 +13,7 @@ public struct IntelligentDriverModelJob : IJobParallelFor {
     [ReadOnly] public NativeArray<IdmParameters> IdmParameters;
     [ReadOnly] public NativeArray<LaneInfo> Lanes;
     [ReadOnly] public NativeArray<LaneVehicleRange> LaneRanges;
+    [ReadOnly] public NativeArray<LaneChangeState> LaneChangeStates;
     public NativeArray<float> Accelerations;
 
     public void Execute(int index) {
@@ -32,7 +33,55 @@ public struct IntelligentDriverModelJob : IJobParallelFor {
             baseAcceleration = IdmMath.AccelerationWithLeader(self.Speed, relativeSpeedToLeader, math.max(IdmMath.Epsilon, leaderGap), lane.SpeedLimit, in idm);
         }
 
+
+        // Consider only vehicles that are entering this lane (target == self lane) and only from immediate neighbor lanes.
+        var incomingHazardVehicleIndex = -1;
+        var nearestAheadCenterDistance = float.MaxValue;
+        if (lane.LeftLaneIndex >= 0) {
+            ScanLaneForIncomingHazard(lane.LeftLaneIndex, index, self.LaneIndex, self.Position, lane.Length, ref incomingHazardVehicleIndex, ref nearestAheadCenterDistance);
+        }
+
+        if (lane.RightLaneIndex >= 0) {
+            ScanLaneForIncomingHazard(lane.RightLaneIndex, index, self.LaneIndex, self.Position, lane.Length, ref incomingHazardVehicleIndex, ref nearestAheadCenterDistance);
+        }
+
+        if (incomingHazardVehicleIndex >= 0) {
+            var hazard = Vehicles[incomingHazardVehicleIndex];
+            var hazardGap = MathUtilities.BumperGap(self.Position, self.Length, hazard.Position, hazard.Length, lane.Length);
+            var relativeSpeedToHazard = self.Speed - hazard.Speed;
+            var hazardAcceleration = IdmMath.AccelerationWithLeader(self.Speed, relativeSpeedToHazard, math.max(IdmMath.Epsilon, hazardGap), lane.SpeedLimit, in idm);
+            baseAcceleration = math.min(baseAcceleration, hazardAcceleration);
+        }
+
         Accelerations[index] = baseAcceleration;
+    }
+
+    private void ScanLaneForIncomingHazard(int laneIndex, int selfIndex, int selfLaneIndex, float selfPosition, float laneLength, ref int bestHazardIndex, ref float bestAheadCenterDistance) {
+        if (laneIndex < 0) return;
+
+        var range = LaneRanges[laneIndex];
+        var end = range.Start + range.Count;
+
+        for (var i = range.Start; i < end; i++) {
+            if (i == selfIndex) continue;
+
+            var laneChangeState = LaneChangeStates[i];
+            if (!laneChangeState.Active)
+                continue;
+            if (laneChangeState.TargetLaneIndex != selfLaneIndex)
+                // only vehicles merging into this lane
+                continue;
+
+            var other = Vehicles[i];
+            var distanceAhead = other.Position - selfPosition;
+            if (distanceAhead <= 0f)
+                distanceAhead += laneLength;
+
+            if (distanceAhead < bestAheadCenterDistance) {
+                bestAheadCenterDistance = distanceAhead;
+                bestHazardIndex = i;
+            }
+        }
     }
 
     private static bool TryGetLeader(int selfIndex, in LaneVehicleRange range, out int leaderIndex) {
