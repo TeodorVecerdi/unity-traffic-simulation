@@ -231,13 +231,24 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
             Accelerations = m_WorldState.Accelerations,
         }.Schedule(m_WorldState.Vehicles.Length, 64, sortVehiclesJob);
 
+        // Decide lane changes (MOBIL)
+        var mobilJob = new MobilLaneChangeDecisionJob {
+            Vehicles = m_WorldState.Vehicles,
+            IdmParameters = m_WorldState.IdmParameters,
+            MobilParameters = m_WorldState.MobilParameters,
+            Lanes = m_WorldState.Lanes,
+            LaneRanges = m_WorldState.LaneRanges,
+            Accelerations = m_WorldState.Accelerations,
+            LaneChangeStates = m_WorldState.LaneChangeStates,
+        }.Schedule(m_WorldState.Vehicles.Length, 64, idmJob);
+
         // Integrate vehicle state
         var integrateJob = new IntegrateVehicleStateJob {
             DeltaTime = timeStep,
             Vehicles = m_WorldState.Vehicles,
             Lanes = m_WorldState.Lanes,
             Accelerations = m_WorldState.Accelerations,
-        }.Schedule(m_WorldState.Vehicles.Length, 64, idmJob);
+        }.Schedule(m_WorldState.Vehicles.Length, 64, mobilJob);
 
         return integrateJob;
     }
