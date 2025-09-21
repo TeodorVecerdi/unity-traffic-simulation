@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Unity.Mathematics;
 
 namespace TrafficSimulation.Sim.Components;
@@ -9,6 +10,7 @@ public struct LaneChangeState {
     /// <summary>
     /// Whether a lane change is in progress.
     /// </summary>
+    [MarshalAs(UnmanagedType.U1)]
     public bool Active;
 
     /// <summary>
