@@ -1,4 +1,6 @@
-﻿namespace TrafficSimulation.Sim.Authoring;
+﻿using Sirenix.OdinInspector;
+
+namespace TrafficSimulation.Sim.Authoring;
 
 public sealed class VehicleAuthoring : MonoBehaviour {
     [Title("Core Properties")]
