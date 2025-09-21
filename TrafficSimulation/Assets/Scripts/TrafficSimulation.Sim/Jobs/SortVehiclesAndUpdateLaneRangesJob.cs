@@ -25,7 +25,9 @@ public struct SortVehiclesAndUpdateLaneRangesJob : IJob {
         Hint.Assume(Lanes.Length == LaneRanges.Length);
 
         // 1. Sort vehicles by (LaneIndex, Position) and keep IdmParameters aligned by index
-        DualSortByLaneAndPosition(0, Vehicles.Length - 1);
+        if (Vehicles.Length > 1) {
+            DualSortByLaneAndPosition(0, Vehicles.Length - 1);
+        }
 
         // 2. Reconstruct LaneRanges
         var laneCount = Lanes.Length;
@@ -56,6 +58,7 @@ public struct SortVehiclesAndUpdateLaneRangesJob : IJob {
 
     // In-place quicksort that swaps both Vehicles and IdmParameters to keep indices aligned
     private void DualSortByLaneAndPosition(int left, int right) {
+        if (left >= right) return;
         var i = left;
         var j = right;
         var pivot = Vehicles[(left + right) >> 1];
