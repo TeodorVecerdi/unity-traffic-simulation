@@ -12,6 +12,8 @@ public struct SortVehiclesAndUpdateLaneRangesJob : IJob {
     public NativeArray<LaneVehicleRange> LaneRanges;
     public NativeArray<VehicleState> Vehicles;
     public NativeArray<IdmParameters> IdmParameters;
+    public NativeArray<MobilParameters> MobilParameters;
+    public NativeArray<LaneChangeState> LaneChangeStates;
 
     public void Execute() {
         // 1. Sort vehicles by (LaneIndex, Position) and keep IdmParameters aligned by index
@@ -77,5 +79,7 @@ public struct SortVehiclesAndUpdateLaneRangesJob : IJob {
     private void Swap(int a, int b) {
         (Vehicles[a], Vehicles[b]) = (Vehicles[b], Vehicles[a]);
         (IdmParameters[a], IdmParameters[b]) = (IdmParameters[b], IdmParameters[a]);
+        (MobilParameters[a], MobilParameters[b]) = (MobilParameters[b], MobilParameters[a]);
+        (LaneChangeStates[a], LaneChangeStates[b]) = (LaneChangeStates[b], LaneChangeStates[a]);
     }
 }
