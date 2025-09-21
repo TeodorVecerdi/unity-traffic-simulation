@@ -15,7 +15,7 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
 
     [Title("Simulation Settings")]
     [SerializeField, Min(0.001f), Unit(Units.Second)] private float m_TimeStep = 0.02f;
-    [SerializeField, PropertyRange(0.0f, 2.0f)] private float m_TimeScale = 1.0f;
+    [SerializeField, PropertyRange(0.0f, 4.0f)] private float m_TimeScale = 1.0f;
     [SerializeField] private bool m_Paused;
     [SerializeField, Min(1)] private int m_MaxStepsPerFrame = 8;
 
@@ -59,6 +59,18 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
         }
 
         SyncRenderers();
+    }
+
+    [Button, DisableInEditorMode]
+    private void StepSimulation() {
+        m_ManualStepsToSimulate++;
+    }
+
+    [Button, DisableInEditorMode]
+    private void StepSimulation(int steps) {
+        if (steps < 1)
+            throw new ArgumentOutOfRangeException(nameof(steps), "Steps must be at least 1.");
+        m_ManualStepsToSimulate += steps;
     }
 
     private void SetupWorldState() {
