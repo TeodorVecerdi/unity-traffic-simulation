@@ -8,5 +8,3 @@ public readonly struct TrafficLightLaneBinding(int laneIndex, int groupIndex, fl
     public readonly int GroupIndex = groupIndex;
     public readonly float StopLinePositionMeters = stopLinePositionMeters;
 }
-
-

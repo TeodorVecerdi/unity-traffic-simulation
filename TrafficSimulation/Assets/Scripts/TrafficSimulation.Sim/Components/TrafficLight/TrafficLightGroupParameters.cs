@@ -11,5 +11,3 @@ public readonly struct TrafficLightGroupParameters(float greenDurationSeconds, f
 
     public float TotalCycleSeconds => GreenDurationSeconds + AmberDurationSeconds + RedDurationSeconds;
 }
-
-

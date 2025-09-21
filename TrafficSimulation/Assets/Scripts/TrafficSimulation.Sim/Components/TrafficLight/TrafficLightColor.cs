@@ -5,5 +5,3 @@ public enum TrafficLightColor : byte {
     Amber = 1,
     Red = 2,
 }
-
-
