@@ -38,11 +38,13 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
     private void Update() {
         var stepsThisFrame = 0;
         if (!m_Paused && m_TimeScale > 0.0f) {
-            m_AccumulatedTime += Time.deltaTime * m_TimeScale;
+            // Accumulate real time so simulation step frequency stays constant; scale the per-step delta instead.
+            m_AccumulatedTime += Time.deltaTime;
         }
 
-        while (m_AccumulatedTime >= m_TimeStep && stepsThisFrame < m_MaxStepsPerFrame) {
-            ScheduleSimulation(m_TimeStep).Complete();
+        while (!m_Paused && m_TimeScale > 0.0f && m_AccumulatedTime >= m_TimeStep && stepsThisFrame < m_MaxStepsPerFrame) {
+            var effectiveStep = m_TimeStep * m_TimeScale;
+            ScheduleSimulation(effectiveStep).Complete();
             m_AccumulatedTime -= m_TimeStep;
             stepsThisFrame++;
         }
