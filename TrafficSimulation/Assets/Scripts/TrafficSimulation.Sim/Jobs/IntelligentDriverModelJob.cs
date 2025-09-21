@@ -127,15 +127,21 @@ public struct IntelligentDriverModelJob : IJobParallelFor {
         var color = TrafficLightMath.EvaluateColor(groupState.TimeInCycleSeconds, in groupParameters);
 
         var shouldTreatAsStop = false;
+        const float timeSafetyMarginSeconds = 0.2f;
+        var passThroughToleranceMeters = math.clamp(groupParameters.AmberStopBufferMeters, 0.25f, 1.0f);
+        var timeToReachLineSeconds = nearestDistanceAhead / math.max(IdmMath.Epsilon, self.Speed);
+        var timeToBoundarySeconds = TrafficLightMath.TimeToPhaseBoundary(groupState.TimeInCycleSeconds, in groupParameters);
+
         if (color == TrafficLightColor.Red) {
-            shouldTreatAsStop = true;
+            // If we are effectively at the line, allow pass-through to avoid unrealistic instant stop
+            shouldTreatAsStop = nearestDistanceAhead > passThroughToleranceMeters + 0.5f * self.Length;
         } else if (color == TrafficLightColor.Amber) {
-            // Determine if the vehicle can stop before the line using comfortable braking and buffer
-            var stoppingDistance = (self.Speed * self.Speed) / math.max(IdmMath.Epsilon, 2.0f * idm.ComfortableBraking);
-            var effectiveAvailable = math.max(0.0f, nearestDistanceAhead - 0.5f * self.Length - groupParameters.AmberStopBufferMeters);
-            if (effectiveAvailable >= stoppingDistance) {
-                shouldTreatAsStop = true;
-            }
+            // Dilemma-zone policy: stop if we can stop comfortably AND we'd arrive after boundary (red)
+            var stoppingDistanceMeters = (self.Speed * self.Speed) / math.max(IdmMath.Epsilon, 2.0f * idm.ComfortableBraking);
+            var effectiveAvailableMeters = math.max(0.0f, nearestDistanceAhead - 0.5f * self.Length - groupParameters.AmberStopBufferMeters);
+            var canStopComfortably = effectiveAvailableMeters >= stoppingDistanceMeters;
+            var wouldArriveAfterBoundary = timeToReachLineSeconds >= (timeToBoundarySeconds - timeSafetyMarginSeconds);
+            shouldTreatAsStop = canStopComfortably && wouldArriveAfterBoundary;
         }
 
         if (!shouldTreatAsStop)

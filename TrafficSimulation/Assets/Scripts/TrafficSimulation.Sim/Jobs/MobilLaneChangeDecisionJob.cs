@@ -161,7 +161,7 @@ public struct MobilLaneChangeDecisionJob : IJobParallelFor {
         var newSelfAcceleration = ComputeAccelerationAsFollower(self, selfIdm, targetLaneIndex, effectiveLeaderIndex);
 
         // If the target lane has a red light close ahead, reduce incentive to avoid switching into a stopped queue.
-        if (HasRedOrStoppingAmberAhead(targetLaneIndex, self.Position, out var distanceToStopLine, out var brakingBufferMeters)) {
+        if (HasRedOrStoppingAmberAhead(targetLaneIndex, self.Position, self.Speed, out var distanceToStopLine, out var brakingBufferMeters)) {
             var reduced = IdmMath.AccelerationWithLeader(self.Speed, self.Speed - 0.0f, math.max(IdmMath.Epsilon, distanceToStopLine - 0.5f * self.Length - brakingBufferMeters), Lanes[targetLaneIndex].SpeedLimit, in selfIdm);
             newSelfAcceleration = math.min(newSelfAcceleration, reduced);
         }
@@ -257,7 +257,7 @@ public struct MobilLaneChangeDecisionJob : IJobParallelFor {
         return IdmMath.AccelerationWithLeader(rear.Speed, relativeSpeed, math.max(IdmMath.Epsilon, gap), speedLimit, in rearIdm);
     }
 
-    private bool HasRedOrStoppingAmberAhead(int laneIndex, float selfPosition, out float distanceToStopLine, out float bufferMeters) {
+    private bool HasRedOrStoppingAmberAhead(int laneIndex, float selfPosition, float selfSpeed, out float distanceToStopLine, out float bufferMeters) {
         distanceToStopLine = float.MaxValue;
         bufferMeters = 0.0f;
         var laneLength = Lanes[laneIndex].Length;
@@ -274,10 +274,16 @@ public struct MobilLaneChangeDecisionJob : IJobParallelFor {
             var groupParams = TrafficLightGroupParameters[binding.GroupIndex];
             var groupState = TrafficLightGroupStates[binding.GroupIndex];
             var color = TrafficLightMath.EvaluateColor(groupState.TimeInCycleSeconds, in groupParams);
-            var treatAsStop = color == TrafficLightColor.Red;
-            if (!treatAsStop && color == TrafficLightColor.Amber) {
-                // Without vehicle context here, be conservative and treat amber as stop if reasonably near.
-                treatAsStop = distanceAhead <= (10.0f + groupParams.AmberStopBufferMeters);
+            var passThroughToleranceMeters = math.clamp(groupParams.AmberStopBufferMeters, 0.25f, 1.0f);
+            var treatAsStop = false;
+            if (color == TrafficLightColor.Red) {
+                treatAsStop = distanceAhead > passThroughToleranceMeters;
+            } else if (color == TrafficLightColor.Amber) {
+                var timeToReachLineSeconds = distanceAhead / math.max(IdmMath.Epsilon, selfSpeed);
+                var timeToBoundarySeconds = TrafficLightMath.TimeToPhaseBoundary(groupState.TimeInCycleSeconds, in groupParams);
+                const float timeSafetyMarginSeconds = 0.2f;
+                var wouldArriveAfterBoundary = timeToReachLineSeconds >= (timeToBoundarySeconds - timeSafetyMarginSeconds);
+                treatAsStop = wouldArriveAfterBoundary;
             }
 
             if (treatAsStop) {
