@@ -702,7 +702,7 @@ MonoBehaviour:
   m_InitialPosition: 97.6
   m_InitialSpeed: 10
   m_DesiredSpeed: 30
-  m_MaxAcceleration: 1.4
+  m_MaxAcceleration: 3
   m_ComfortableBraking: 2
   m_HeadwayTime: 1.6
   m_MinGap: 2
@@ -1196,6 +1196,63 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!1 &433544008
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 433544010}
+  - component: {fileID: 433544009}
+  m_Layer: 0
+  m_Name: TrafficLightGroup1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &433544009
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 433544008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc166a81d2bd75a40abc94f94397d7b0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TrafficSimulation.Sim::TrafficSimulation.Sim.Authoring.TrafficLightGroupAuthoring
+  m_GreenDurationSeconds: 20
+  m_AmberDurationSeconds: 5
+  m_RedDurationSeconds: 20
+  m_StartTimeOffsetSeconds: 0
+  m_AmberStopBufferMeters: 1.5
+  m_LaneBindings:
+  - Lane: {fileID: 2123894895}
+    StopLinePositionMeters: 110
+  - Lane: {fileID: 878900923}
+    StopLinePositionMeters: 110
+  m_DrawGizmos: 1
+  m_GizmoLineHalfWidth: 1.5
+  m_GizmoSphereSize: 0.1
+--- !u!4 &433544010
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 433544008}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &457635653
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2084,7 +2141,7 @@ MonoBehaviour:
   m_InitialPosition: 81
   m_InitialSpeed: 10
   m_DesiredSpeed: 30
-  m_MaxAcceleration: 1.4
+  m_MaxAcceleration: 3
   m_ComfortableBraking: 2
   m_HeadwayTime: 1.6
   m_MinGap: 2
@@ -2332,7 +2389,7 @@ MonoBehaviour:
   m_InitialPosition: 6.2
   m_InitialSpeed: 10
   m_DesiredSpeed: 30
-  m_MaxAcceleration: 1.4
+  m_MaxAcceleration: 3
   m_ComfortableBraking: 2
   m_HeadwayTime: 1.6
   m_MinGap: 2
@@ -3460,7 +3517,7 @@ MonoBehaviour:
   m_InitialPosition: 113.7
   m_InitialSpeed: 10
   m_DesiredSpeed: 30
-  m_MaxAcceleration: 1.4
+  m_MaxAcceleration: 3
   m_ComfortableBraking: 2
   m_HeadwayTime: 1.6
   m_MinGap: 2
@@ -3588,7 +3645,7 @@ MonoBehaviour:
   m_InitialPosition: 64.7
   m_InitialSpeed: 10
   m_DesiredSpeed: 30
-  m_MaxAcceleration: 1.8
+  m_MaxAcceleration: 3
   m_ComfortableBraking: 3
   m_HeadwayTime: 1
   m_MinGap: 0.5
@@ -3712,7 +3769,7 @@ MonoBehaviour:
   m_InitialPosition: 37.8
   m_InitialSpeed: 10
   m_DesiredSpeed: 25
-  m_MaxAcceleration: 1.4
+  m_MaxAcceleration: 3
   m_ComfortableBraking: 2
   m_HeadwayTime: 1.6
   m_MinGap: 2
@@ -3892,7 +3949,7 @@ MonoBehaviour:
   m_InitialPosition: 26.76
   m_InitialSpeed: 10
   m_DesiredSpeed: 25
-  m_MaxAcceleration: 1.4
+  m_MaxAcceleration: 3
   m_ComfortableBraking: 2
   m_HeadwayTime: 1.6
   m_MinGap: 2
@@ -4020,7 +4077,7 @@ MonoBehaviour:
   m_InitialPosition: 55.1
   m_InitialSpeed: 10
   m_DesiredSpeed: 25
-  m_MaxAcceleration: 1.4
+  m_MaxAcceleration: 3
   m_ComfortableBraking: 2
   m_HeadwayTime: 1.6
   m_MinGap: 2
@@ -4675,6 +4732,7 @@ SceneRoots:
   - {fileID: 1687314398}
   - {fileID: 1433128251}
   - {fileID: 2099351332}
+  - {fileID: 433544010}
   - {fileID: 1056611532}
   - {fileID: 1784838164}
   - {fileID: 1682453628}

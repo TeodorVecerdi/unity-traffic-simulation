@@ -26,6 +26,7 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
 
     private readonly Dictionary<int, VehicleAuthoring> m_VehicleIdMap = new();
     private readonly Dictionary<int, LaneAuthoring> m_LaneIdMap = new();
+    private TrafficLightGroupAuthoring[]? m_TrafficLightGroups;
     private WorldState? m_WorldState;
 
     private void Start() {
@@ -94,6 +95,13 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
         var laneRanges = new NativeArray<LaneVehicleRange>(lanes.Length, Allocator.Persistent);
         var laneIdToIndex = lanes.Index().ToDictionary(pair => pair.Item.LaneId, pair => pair.Index);
 
+        // Traffic lights
+        m_TrafficLightGroups = FindObjectsByType<TrafficLightGroupAuthoring>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        var trafficLightGroupParameters = new NativeArray<TrafficLightGroupParameters>(m_TrafficLightGroups.Length, Allocator.Persistent);
+        var trafficLightGroupStates = new NativeArray<TrafficLightGroupState>(m_TrafficLightGroups.Length, Allocator.Persistent);
+        var totalBindings = m_TrafficLightGroups.Sum(trafficLightGroup => trafficLightGroup.LaneBindings.Count);
+        var trafficLightLaneBindings = new NativeArray<TrafficLightLaneBinding>(totalBindings, Allocator.Persistent);
+
         m_LaneIdMap.Clear();
         foreach (var lane in lanes) {
             if (lane == null) continue;
@@ -128,7 +136,46 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
             laneRanges[i] = new LaneVehicleRange(0, 0);
         }
 
-        m_WorldState = new WorldState(vehicleStates, idmParameters, mobilParameters, laneChangeStates, accelerations, laneData, laneRanges);
+        // Setup traffic lights
+        var bindingWriteCursor = 0;
+        for (var groupIndex = 0; groupIndex < m_TrafficLightGroups.Length; groupIndex++) {
+            var group = m_TrafficLightGroups[groupIndex];
+            var parameters = group.Parameters;
+            trafficLightGroupParameters[groupIndex] = parameters;
+            trafficLightGroupStates[groupIndex] = new TrafficLightGroupState(parameters.StartTimeOffsetSeconds);
+
+            var bindings = group.LaneBindings;
+            foreach (var binding in bindings) {
+                if (binding == null || binding.Lane == null)
+                    continue;
+                if (!laneIdToIndex.TryGetValue(binding.Lane.LaneId, out var laneIndex))
+                    continue;
+
+                trafficLightLaneBindings[bindingWriteCursor++] = new TrafficLightLaneBinding(laneIndex, groupIndex, binding.StopLinePositionMeters);
+            }
+        }
+
+        if (bindingWriteCursor < trafficLightLaneBindings.Length) {
+            // Trim trailing unused entries if any lanes were invalid
+            var trimmed = new NativeArray<TrafficLightLaneBinding>(bindingWriteCursor, Allocator.Persistent);
+            for (var k = 0; k < bindingWriteCursor; k++)
+                trimmed[k] = trafficLightLaneBindings[k];
+            trafficLightLaneBindings.Dispose();
+            trafficLightLaneBindings = trimmed;
+        }
+
+        m_WorldState = new WorldState(
+            vehicleStates,
+            idmParameters,
+            mobilParameters,
+            laneChangeStates,
+            accelerations,
+            laneData,
+            laneRanges,
+            trafficLightGroupParameters,
+            trafficLightGroupStates,
+            trafficLightLaneBindings
+        );
     }
 
     private void SyncRenderers() {
@@ -138,6 +185,7 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
         var vehicles = m_WorldState.Vehicles;
         var lanes = m_WorldState.Lanes;
         var laneChangeStates = m_WorldState.LaneChangeStates;
+        var groupStates = m_WorldState.TrafficLightGroupStates;
         for (var i = 0; i < vehicles.Length; i++) {
             var vehicleState = vehicles[i];
             if (!m_VehicleIdMap.TryGetValue(vehicleState.VehicleId, out var vehicleAuthoring)) {
@@ -175,6 +223,13 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
             vehicleAuthoring.transform.SetPositionAndRotation(position, rotation);
             vehicleAuthoring.VehicleState = vehicleState;
             vehicleAuthoring.LaneChangeState = laneChangeState;
+        }
+
+        // Push group state time to authoring for gizmo coloring
+        if (m_TrafficLightGroups != null && m_TrafficLightGroups.Length == groupStates.Length) {
+            for (var gi = 0; gi < m_TrafficLightGroups.Length; gi++) {
+                m_TrafficLightGroups[gi].SetRuntimeTime(groupStates[gi].TimeInCycleSeconds);
+            }
         }
     }
 
@@ -273,6 +328,15 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
             LaneChangeStates = m_WorldState.LaneChangeStates,
         }.Schedule(safetyCheckJob);
 
+        // Update traffic light groups
+        var updateTrafficLightsJob = new UpdateTrafficLightGroupsJob {
+            DeltaTime = timeStep,
+            GroupParameters = m_WorldState.TrafficLightGroupParameters,
+            GroupStates = m_WorldState.TrafficLightGroupStates,
+        }.Schedule(m_WorldState.TrafficLightGroupParameters.Length, 32, safetyCheckJob);
+
+        var trafficLightsAndSorting = JobHandle.CombineDependencies(sortVehiclesJob, updateTrafficLightsJob);
+
         // Compute accelerations using IDM
         var idmJob = new IntelligentDriverModelJob {
             Vehicles = m_WorldState.Vehicles,
@@ -280,8 +344,11 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
             Lanes = m_WorldState.Lanes,
             LaneRanges = m_WorldState.LaneRanges,
             LaneChangeStates = m_WorldState.LaneChangeStates,
+            TrafficLightGroupParameters = m_WorldState.TrafficLightGroupParameters,
+            TrafficLightGroupStates = m_WorldState.TrafficLightGroupStates,
+            TrafficLightLaneBindings = m_WorldState.TrafficLightLaneBindings,
             Accelerations = m_WorldState.Accelerations,
-        }.Schedule(m_WorldState.Vehicles.Length, 64, sortVehiclesJob);
+        }.Schedule(m_WorldState.Vehicles.Length, 64, trafficLightsAndSorting);
 
         // Decide lane changes (MOBIL)
         var mobilJob = new MobilLaneChangeDecisionJob {
@@ -292,6 +359,9 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
             LaneRanges = m_WorldState.LaneRanges,
             Accelerations = m_WorldState.Accelerations,
             LaneChangeStates = m_WorldState.LaneChangeStates,
+            TrafficLightGroupParameters = m_WorldState.TrafficLightGroupParameters,
+            TrafficLightGroupStates = m_WorldState.TrafficLightGroupStates,
+            TrafficLightLaneBindings = m_WorldState.TrafficLightLaneBindings,
         }.Schedule(m_WorldState.Vehicles.Length, 64, idmJob);
 
         // Integrate vehicle state

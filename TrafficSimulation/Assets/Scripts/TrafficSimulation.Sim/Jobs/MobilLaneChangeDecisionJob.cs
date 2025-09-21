@@ -19,6 +19,9 @@ public struct MobilLaneChangeDecisionJob : IJobParallelFor {
     [ReadOnly] public NativeArray<LaneInfo> Lanes;
     [ReadOnly] public NativeArray<LaneVehicleRange> LaneRanges;
     [ReadOnly] public NativeArray<float> Accelerations;
+    [ReadOnly] public NativeArray<TrafficLightGroupParameters> TrafficLightGroupParameters;
+    [ReadOnly] public NativeArray<TrafficLightGroupState> TrafficLightGroupStates;
+    [ReadOnly] public NativeArray<TrafficLightLaneBinding> TrafficLightLaneBindings;
 
     public NativeArray<LaneChangeState> LaneChangeStates;
 
@@ -156,6 +159,13 @@ public struct MobilLaneChangeDecisionJob : IJobParallelFor {
 
         // Self in target lane (new)
         var newSelfAcceleration = ComputeAccelerationAsFollower(self, selfIdm, targetLaneIndex, effectiveLeaderIndex);
+
+        // If the target lane has a red light close ahead, reduce incentive to avoid switching into a stopped queue.
+        if (HasRedOrStoppingAmberAhead(targetLaneIndex, self.Position, self.Speed, out var distanceToStopLine, out var brakingBufferMeters)) {
+            var reduced = IdmMath.AccelerationWithLeader(self.Speed, self.Speed - 0.0f, math.max(IdmMath.Epsilon, distanceToStopLine - 0.5f * self.Length - brakingBufferMeters), Lanes[targetLaneIndex].SpeedLimit, in selfIdm);
+            newSelfAcceleration = math.min(newSelfAcceleration, reduced);
+        }
+
         var incentive = (newSelfAcceleration - oldSelfAcceleration) + mobil.Politeness * othersDelta;
         if (incentive > bestIncentive) {
             bestIncentive = incentive;
@@ -202,6 +212,7 @@ public struct MobilLaneChangeDecisionJob : IJobParallelFor {
         if (leftLaneIndex >= 0) {
             ScanLaneForIncomingHazards(leftLaneIndex, targetLaneIndex, selfPosition, ref aheadIndex, ref aheadDistance, ref behindIndex, ref behindDistance);
         }
+
         var rightLaneIndex = Lanes[targetLaneIndex].RightLaneIndex;
         if (rightLaneIndex >= 0) {
             ScanLaneForIncomingHazards(rightLaneIndex, targetLaneIndex, selfPosition, ref aheadIndex, ref aheadDistance, ref behindIndex, ref behindDistance);
@@ -244,5 +255,44 @@ public struct MobilLaneChangeDecisionJob : IJobParallelFor {
         var gap = MathUtilities.BumperGap(rear.Position, rear.Length, front.Position, front.Length, Lanes[rear.LaneIndex].Length);
         var relativeSpeed = rear.Speed - front.Speed;
         return IdmMath.AccelerationWithLeader(rear.Speed, relativeSpeed, math.max(IdmMath.Epsilon, gap), speedLimit, in rearIdm);
+    }
+
+    private bool HasRedOrStoppingAmberAhead(int laneIndex, float selfPosition, float selfSpeed, out float distanceToStopLine, out float bufferMeters) {
+        distanceToStopLine = float.MaxValue;
+        bufferMeters = 0.0f;
+        var laneLength = Lanes[laneIndex].Length;
+        var found = false;
+
+        for (var i = 0; i < TrafficLightLaneBindings.Length; i++) {
+            var binding = TrafficLightLaneBindings[i];
+            if (binding.LaneIndex != laneIndex)
+                continue;
+            var distanceAhead = MathUtilities.ComputeDistanceAlongLane(selfPosition, binding.StopLinePositionMeters, laneLength);
+            if (distanceAhead >= distanceToStopLine)
+                continue;
+
+            var groupParams = TrafficLightGroupParameters[binding.GroupIndex];
+            var groupState = TrafficLightGroupStates[binding.GroupIndex];
+            var color = TrafficLightMath.EvaluateColor(groupState.TimeInCycleSeconds, in groupParams);
+            var passThroughToleranceMeters = math.clamp(groupParams.AmberStopBufferMeters, 0.25f, 1.0f);
+            var treatAsStop = false;
+            if (color == TrafficLightColor.Red) {
+                treatAsStop = distanceAhead > passThroughToleranceMeters;
+            } else if (color == TrafficLightColor.Amber) {
+                var timeToReachLineSeconds = distanceAhead / math.max(IdmMath.Epsilon, selfSpeed);
+                var timeToBoundarySeconds = TrafficLightMath.TimeToPhaseBoundary(groupState.TimeInCycleSeconds, in groupParams);
+                const float timeSafetyMarginSeconds = 0.2f;
+                var wouldArriveAfterBoundary = timeToReachLineSeconds >= (timeToBoundarySeconds - timeSafetyMarginSeconds);
+                treatAsStop = wouldArriveAfterBoundary;
+            }
+
+            if (treatAsStop) {
+                distanceToStopLine = distanceAhead;
+                bufferMeters = groupParams.AmberStopBufferMeters;
+                found = true;
+            }
+        }
+
+        return found;
     }
 }
