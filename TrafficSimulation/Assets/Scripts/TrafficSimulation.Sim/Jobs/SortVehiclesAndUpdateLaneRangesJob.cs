@@ -1,5 +1,6 @@
 ﻿using TrafficSimulation.Sim.Components;
 using Unity.Burst;
+using Unity.Burst.CompilerServices;
 using Unity.Collections;
 using Unity.Jobs;
 
@@ -28,6 +29,12 @@ public struct SortVehiclesAndUpdateLaneRangesJob : IJob {
             var end = start + 1;
             while (end < vehicleCount && Vehicles[end].LaneIndex == laneIndex) {
                 end++;
+            }
+
+            // Skip invalid lane indices defensively (upstream should guarantee validity).
+            if (Hint.Unlikely((uint)laneIndex >= (uint)laneCount)) {
+                start = end;
+                continue;
             }
 
             var count = end - start;
