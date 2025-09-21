@@ -26,6 +26,7 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
 
     private readonly Dictionary<int, VehicleAuthoring> m_VehicleIdMap = new();
     private readonly Dictionary<int, LaneAuthoring> m_LaneIdMap = new();
+    private TrafficLightGroupAuthoring[]? m_TrafficLightGroups;
     private WorldState? m_WorldState;
 
     private void Start() {
@@ -94,6 +95,13 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
         var laneRanges = new NativeArray<LaneVehicleRange>(lanes.Length, Allocator.Persistent);
         var laneIdToIndex = lanes.Index().ToDictionary(pair => pair.Item.LaneId, pair => pair.Index);
 
+        // Traffic lights
+        m_TrafficLightGroups = FindObjectsByType<TrafficLightGroupAuthoring>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        var trafficLightGroupParameters = new NativeArray<TrafficLightGroupParameters>(m_TrafficLightGroups.Length, Allocator.Persistent);
+        var trafficLightGroupStates = new NativeArray<TrafficLightGroupState>(m_TrafficLightGroups.Length, Allocator.Persistent);
+        var totalBindings = m_TrafficLightGroups.Sum(trafficLightGroup => trafficLightGroup.LaneBindings.Count);
+        var trafficLightLaneBindings = new NativeArray<TrafficLightLaneBinding>(totalBindings, Allocator.Persistent);
+
         m_LaneIdMap.Clear();
         foreach (var lane in lanes) {
             if (lane == null) continue;
@@ -128,7 +136,46 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
             laneRanges[i] = new LaneVehicleRange(0, 0);
         }
 
-        m_WorldState = new WorldState(vehicleStates, idmParameters, mobilParameters, laneChangeStates, accelerations, laneData, laneRanges);
+        // Setup traffic lights
+        var bindingWriteCursor = 0;
+        for (var groupIndex = 0; groupIndex < m_TrafficLightGroups.Length; groupIndex++) {
+            var group = m_TrafficLightGroups[groupIndex];
+            var parameters = group.Parameters;
+            trafficLightGroupParameters[groupIndex] = parameters;
+            trafficLightGroupStates[groupIndex] = new TrafficLightGroupState(parameters.StartTimeOffsetSeconds);
+
+            var bindings = group.LaneBindings;
+            foreach (var binding in bindings) {
+                if (binding == null || binding.Lane == null)
+                    continue;
+                if (!laneIdToIndex.TryGetValue(binding.Lane.LaneId, out var laneIndex))
+                    continue;
+
+                trafficLightLaneBindings[bindingWriteCursor++] = new TrafficLightLaneBinding(laneIndex, groupIndex, binding.StopLinePositionMeters);
+            }
+        }
+
+        if (bindingWriteCursor < trafficLightLaneBindings.Length) {
+            // Trim trailing unused entries if any lanes were invalid
+            var trimmed = new NativeArray<TrafficLightLaneBinding>(bindingWriteCursor, Allocator.Persistent);
+            for (var k = 0; k < bindingWriteCursor; k++)
+                trimmed[k] = trafficLightLaneBindings[k];
+            trafficLightLaneBindings.Dispose();
+            trafficLightLaneBindings = trimmed;
+        }
+
+        m_WorldState = new WorldState(
+            vehicleStates,
+            idmParameters,
+            mobilParameters,
+            laneChangeStates,
+            accelerations,
+            laneData,
+            laneRanges,
+            trafficLightGroupParameters,
+            trafficLightGroupStates,
+            trafficLightLaneBindings
+        );
     }
 
     private void SyncRenderers() {
