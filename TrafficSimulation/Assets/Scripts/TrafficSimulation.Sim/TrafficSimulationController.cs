@@ -159,7 +159,7 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
             float3 forward;
             if (laneChangeState.Active) {
                 // Initialize geometry on first frame of lane change
-                if (laneChangeState.Forward is { x: 0.0f, y: 0.0f, z: 0.0f }) {
+                if (math.lengthsq(laneChangeState.Forward) < 1e-6f) {
                     InitializeLaneChangeGeometry(ref laneChangeState, in vehicleState);
                     laneChangeStates[i] = laneChangeState;
                 }
