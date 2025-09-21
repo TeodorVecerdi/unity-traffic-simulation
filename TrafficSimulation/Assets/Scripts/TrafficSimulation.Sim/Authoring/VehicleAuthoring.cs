@@ -1,5 +1,7 @@
 ﻿using Sirenix.OdinInspector;
 using TrafficSimulation.Sim.Components;
+using TrafficSimulation.Sim.Math;
+using Unity.Mathematics;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -49,6 +51,7 @@ public sealed class VehicleAuthoring : MonoBehaviour {
     [SerializeField] private bool m_AlwaysDrawGizmos;
 
     private VehicleState m_VehicleState;
+    private LaneChangeState m_LaneChangeState;
 
     /// <summary>
     /// Represents the unique identifier assigned to a vehicle within the traffic simulation.
@@ -208,6 +211,14 @@ public sealed class VehicleAuthoring : MonoBehaviour {
         set => m_VehicleState = value;
     }
 
+    /// <summary>
+    /// Current lane-change state for debug visualization.
+    /// </summary>
+    public LaneChangeState LaneChangeState {
+        get => m_LaneChangeState;
+        set => m_LaneChangeState = value;
+    }
+
     private void OnDrawGizmos() {
         if (!m_AlwaysDrawGizmos) return;
         DrawCarGizmos();
@@ -220,7 +231,12 @@ public sealed class VehicleAuthoring : MonoBehaviour {
 
     private void DrawCarGizmos() {
         if (Application.isPlaying) {
-            // If we're simulating, draw gizmos at the current position
+            // If we're simulating, draw lane change curve if active
+            if (m_LaneChangeState.Active) {
+                DrawLaneChangeCurveGizmos(in m_LaneChangeState);
+            }
+
+            // Draw vehicle box at current transform
             DrawCarBox(transform.position, transform.forward, transform.right, m_Length, m_VehicleWidth, m_VehicleColor);
             DrawCarProperties();
             return;
@@ -260,7 +276,27 @@ public sealed class VehicleAuthoring : MonoBehaviour {
 #if UNITY_EDITOR
         Handles.color = Color.white;
         var label = $"ID: {m_VehicleId}\nLane: {m_VehicleState.LaneIndex}\ns: {m_VehicleState.Position:0.0} m\nv: {m_VehicleState.Speed:0.0} m/s\na: {m_VehicleState.Acceleration:0.0} m/s²";
+        if (m_LaneChangeState.Active) {
+            label += $"\nLC: → {m_LaneChangeState.TargetLaneIndex}  s: {m_LaneChangeState.ProgressS:0.0}/{m_LaneChangeState.LongitudinalLength:0.0} m";
+        }
+
         Handles.Label(transform.position + Vector3.up * 2.0f, label);
 #endif
+    }
+
+    private static void DrawLaneChangeCurveGizmos(in LaneChangeState laneChangeState) {
+        if (!laneChangeState.Active) return;
+        const int segments = 20;
+        Vector3 prevPos = default;
+        for (var i = 0; i <= segments; i++) {
+            var s = laneChangeState.LongitudinalLength * (i / (float)segments);
+            MathUtilities.EvaluateLaneChangeCurve(in laneChangeState, s, out var pos, out _);
+            if (i > 0) {
+                Gizmos.color = new Color(1.0f, 0.0f, 1.0f, 0.8f); // magenta
+                Gizmos.DrawLine(prevPos, pos);
+            }
+
+            prevPos = pos;
+        }
     }
 }

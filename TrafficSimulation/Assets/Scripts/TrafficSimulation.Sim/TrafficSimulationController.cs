@@ -3,6 +3,7 @@ using Sirenix.OdinInspector;
 using TrafficSimulation.Sim.Authoring;
 using TrafficSimulation.Sim.Components;
 using TrafficSimulation.Sim.Jobs;
+using TrafficSimulation.Sim.Math;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -135,7 +136,9 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
 
         var vehicles = m_WorldState.Vehicles;
         var lanes = m_WorldState.Lanes;
-        foreach (var vehicleState in vehicles) {
+        var laneChangeStates = m_WorldState.LaneChangeStates;
+        for (var i = 0; i < vehicles.Length; i++) {
+            var vehicleState = vehicles[i];
             if (!m_VehicleIdMap.TryGetValue(vehicleState.VehicleId, out var vehicleAuthoring)) {
                 Logger.LogWarning("No VehicleAuthoring found for VehicleId: {VehicleId}", vehicleState.VehicleId);
                 continue;
@@ -150,12 +153,56 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
                 continue;
             }
 
-            var laneTransform = laneAuthoring.transform;
-            var position = laneTransform.position + laneTransform.forward * vehicleState.Position;
-            var rotation = Quaternion.LookRotation(laneTransform.forward, Vector3.up);
+            var laneChangeState = laneChangeStates[i];
+            float3 position;
+            float3 forward;
+            if (laneChangeState.Active) {
+                // Initialize geometry on first frame of lane change
+                if (laneChangeState.Forward is { x: 0.0f, y: 0.0f, z: 0.0f }) {
+                    InitializeLaneChangeGeometry(ref laneChangeState, in vehicleState);
+                    laneChangeStates[i] = laneChangeState;
+                }
+
+                MathUtilities.EvaluateLaneChangeCurve(in laneChangeState, laneChangeState.ProgressS, out position, out forward);
+            } else {
+                var laneTransform = laneAuthoring.transform;
+                position = laneTransform.position + laneTransform.forward * vehicleState.Position;
+                forward = laneTransform.forward;
+            }
+
+            var rotation = Quaternion.LookRotation(forward, Vector3.up);
             vehicleAuthoring.transform.SetPositionAndRotation(position, rotation);
             vehicleAuthoring.VehicleState = vehicleState;
+            vehicleAuthoring.LaneChangeState = laneChangeState;
         }
+    }
+
+    private void InitializeLaneChangeGeometry(ref LaneChangeState laneChangeState, in VehicleState vehicleState) {
+        // Get source and target lanes
+        if (!m_LaneIdMap.TryGetValue(m_WorldState!.Lanes[vehicleState.LaneIndex].LaneId, out var sourceLane))
+            return;
+        if (laneChangeState.TargetLaneIndex < 0 || laneChangeState.TargetLaneIndex >= m_WorldState!.Lanes.Length)
+            return;
+        var targetLaneInfo = m_WorldState.Lanes[laneChangeState.TargetLaneIndex];
+        if (!m_LaneIdMap.TryGetValue(targetLaneInfo.LaneId, out var targetLane))
+            return;
+
+        var sourceTransform = sourceLane.transform;
+        var targetTransform = targetLane.transform;
+
+        // Base curve frame at start s=0 (current longitudinal position on source lane)
+        var p0 = sourceTransform.position + sourceTransform.forward * vehicleState.Position;
+        var forward = sourceTransform.forward;
+        var left = -sourceTransform.right; // left in world based on source lane
+
+        // Signed lateral offset from source to target lane center projected on left axis
+        var delta = targetTransform.position - sourceTransform.position;
+        var lateralOffset = Vector3.Dot(delta, left);
+
+        laneChangeState.P0 = p0;
+        laneChangeState.Forward = forward;
+        laneChangeState.Left = left;
+        laneChangeState.LateralOffset = lateralOffset;
     }
 
     private void DestroyInvalidVehicles(VehicleAuthoring[] allVehicles) {
