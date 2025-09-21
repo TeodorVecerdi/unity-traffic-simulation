@@ -1229,7 +1229,7 @@ MonoBehaviour:
   m_AmberDurationSeconds: 5
   m_RedDurationSeconds: 20
   m_StartTimeOffsetSeconds: 0
-  m_AmberStopBufferMeters: 2
+  m_AmberStopBufferMeters: 1.5
   m_LaneBindings:
   - Lane: {fileID: 2123894895}
     StopLinePositionMeters: 110
@@ -1237,7 +1237,7 @@ MonoBehaviour:
     StopLinePositionMeters: 110
   m_DrawGizmos: 1
   m_GizmoLineHalfWidth: 1.5
-  m_GizmoSphereSize: 0.2
+  m_GizmoSphereSize: 0.1
 --- !u!4 &433544010
 Transform:
   m_ObjectHideFlags: 0
