@@ -83,6 +83,8 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
         var vehicles = allVehicles.Where(v => v != null && v.Lane != null).ToList();
         var vehicleStates = new NativeArray<VehicleState>(vehicles.Count, Allocator.Persistent);
         var idmParameters = new NativeArray<IdmParameters>(vehicles.Count, Allocator.Persistent);
+        var mobilParameters = new NativeArray<MobilParameters>(vehicles.Count, Allocator.Persistent);
+        var laneChangeStates = new NativeArray<LaneChangeState>(vehicles.Count, Allocator.Persistent);
         var accelerations = new NativeArray<float>(vehicles.Count, Allocator.Persistent);
 
         var lanes = FindObjectsByType<LaneAuthoring>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
@@ -109,6 +111,8 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
 
             vehicleStates[i] = new VehicleState(vehicle.VehicleId, laneIdToIndex[vehicle.Lane.LaneId], position, speed, 0.0f, vehicle.Length);
             idmParameters[i] = new IdmParameters(vehicle.DesiredSpeed, vehicle.MaxAcceleration, vehicle.ComfortableBraking, vehicle.HeadwayTime, vehicle.MinGap, vehicle.AccelerationExponent);
+            mobilParameters[i] = new MobilParameters(vehicle.Politeness, vehicle.AdvantageThreshold, vehicle.SafeBrakingDeceleration, vehicle.MinTimeBetweenLaneChanges);
+            laneChangeStates[i] = default;
             accelerations[i] = 0.0f;
         }
 
@@ -122,7 +126,7 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
             laneRanges[i] = new LaneVehicleRange(0, 0);
         }
 
-        m_WorldState = new WorldState(vehicleStates, idmParameters, accelerations, laneData, laneRanges);
+        m_WorldState = new WorldState(vehicleStates, idmParameters, mobilParameters, laneChangeStates, accelerations, laneData, laneRanges);
     }
 
     private void SyncRenderers() {
