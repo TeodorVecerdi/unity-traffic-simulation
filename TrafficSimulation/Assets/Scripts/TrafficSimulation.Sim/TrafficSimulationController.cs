@@ -320,6 +320,15 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
             LaneChangeStates = m_WorldState.LaneChangeStates,
         }.Schedule(safetyCheckJob);
 
+        // Update traffic light groups
+        var updateTrafficLightsJob = new UpdateTrafficLightGroupsJob {
+            DeltaTime = timeStep,
+            GroupParameters = m_WorldState.TrafficLightGroupParameters,
+            GroupStates = m_WorldState.TrafficLightGroupStates,
+        }.Schedule(m_WorldState.TrafficLightGroupParameters.Length, 32, safetyCheckJob);
+
+        var trafficLightsAndSorting = JobHandle.CombineDependencies(sortVehiclesJob, updateTrafficLightsJob);
+
         // Compute accelerations using IDM
         var idmJob = new IntelligentDriverModelJob {
             Vehicles = m_WorldState.Vehicles,
@@ -328,7 +337,7 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
             LaneRanges = m_WorldState.LaneRanges,
             LaneChangeStates = m_WorldState.LaneChangeStates,
             Accelerations = m_WorldState.Accelerations,
-        }.Schedule(m_WorldState.Vehicles.Length, 64, sortVehiclesJob);
+        }.Schedule(m_WorldState.Vehicles.Length, 64, trafficLightsAndSorting);
 
         // Decide lane changes (MOBIL)
         var mobilJob = new MobilLaneChangeDecisionJob {
