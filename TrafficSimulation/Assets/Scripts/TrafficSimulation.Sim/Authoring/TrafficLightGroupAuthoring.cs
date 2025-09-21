@@ -62,8 +62,13 @@ public sealed class TrafficLightGroupAuthoring : MonoBehaviour {
             var tr = entry.Lane.transform;
             var center = tr.position + tr.forward * entry.StopLinePositionMeters;
             var left = -tr.right * m_GizmoLineHalfWidth;
+            var leftStop = -tr.right * (m_GizmoLineHalfWidth - 0.2f);
+            var stopBuffer = center - tr.forward * parameters.AmberStopBufferMeters;
+
             Gizmos.DrawLine(center - left, center + left);
-            Gizmos.DrawSphere(center, m_GizmoSphereSize);
+            Gizmos.DrawLine(center, stopBuffer);
+            Gizmos.DrawLine(stopBuffer - leftStop, stopBuffer + leftStop);
+            Gizmos.DrawSphere(stopBuffer, m_GizmoSphereSize);
         }
     }
 
