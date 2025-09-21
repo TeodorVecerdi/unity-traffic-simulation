@@ -1,4 +1,5 @@
-﻿using TrafficSimulation.Sim.Components;
+﻿using System.Runtime.CompilerServices;
+using TrafficSimulation.Sim.Components;
 using Unity.Burst;
 using Unity.Mathematics;
 
@@ -18,13 +19,29 @@ public static class MathUtilities {
     [BurstCompile]
     public static float BumperGap(float rearPosition, float rearLength, float frontPosition, float frontLength, float laneLength) {
         // Center-to-center arc-length distance between vehicles
-        var d = frontPosition - rearPosition;
-        if (d < 0.0f)
-            d += laneLength;
+        var distance = ComputeDistanceAlongLane(rearPosition, frontPosition, laneLength);
 
         // Bumper-to-bumper distance between vehicles
-        d -= 0.5f * (rearLength + frontLength);
-        return math.max(0.0f, d);
+        distance -= 0.5f * (rearLength + frontLength);
+        return math.max(0.0f, distance);
+    }
+
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float ComputeDistanceAlongLane(float fromPosition, float toPosition, float laneLength) {
+        var deltaPosition = toPosition - fromPosition;
+        if (deltaPosition <= 0.0f)
+            deltaPosition += laneLength;
+        return deltaPosition;
+    }
+
+
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static float ComputeDistanceAlongLane(float deltaPosition, float laneLength) {
+        if (deltaPosition <= 0.0f)
+            deltaPosition += laneLength;
+        return deltaPosition;
     }
 
     [BurstCompile]

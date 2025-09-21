@@ -10,7 +10,6 @@ namespace TrafficSimulation.Sim.Jobs;
 
 /// <summary>
 /// Evaluates MOBIL lane-change incentives and, if beneficial and safe, initializes a lane change.
-/// Geometry (P0/Forward/Left/LateralOffset) is initialized on the rendering side.
 /// </summary>
 [BurstCompile]
 public struct MobilLaneChangeDecisionJob : IJobParallelFor {
@@ -22,6 +21,9 @@ public struct MobilLaneChangeDecisionJob : IJobParallelFor {
     [ReadOnly] public NativeArray<float> Accelerations;
 
     public NativeArray<LaneChangeState> LaneChangeStates;
+
+    // If a vehicle ahead is currently merging into the target lane within this distance, avoid switching into it.
+    private const float IncomingAheadReservationDistance = 12.0f; // meters
 
     public void Execute(int index) {
         var self = Vehicles[index];
@@ -68,17 +70,54 @@ public struct MobilLaneChangeDecisionJob : IJobParallelFor {
 
     private void TryEvaluateTarget(int index, in VehicleState self, in IdmParameters selfIdm, in MobilParameters mobil, float oldSelfAcceleration, int targetLaneIndex, ref float bestIncentive, ref int bestTargetLane) {
         Hint.Assume(targetLaneIndex >= 0 && targetLaneIndex < Lanes.Length);
-        var (newLeaderIndex, newFollowerIndex) = FindNeighborsAtPosition(targetLaneIndex, self.Position);
+        var (laneLeaderIndex, laneFollowerIndex) = FindNeighborsAtPosition(targetLaneIndex, self.Position);
 
-        // Safety for new follower in the target lane
+        // Consider vehicles currently merging into the target lane as provisional occupants.
+        FindNearestIncomingHazardsForTarget(targetLaneIndex, self.Position, out var incomingAheadIndex, out var incomingAheadDistance, out var incomingBehindIndex, out var incomingBehindDistance);
+
+        // Choose the closest ahead entity as the effective leader in the target lane.
+        var effectiveLeaderIndex = laneLeaderIndex;
+        var effectiveLeaderDistance = float.MaxValue;
+        if (laneLeaderIndex >= 0) {
+            var leaderPosition = Vehicles[laneLeaderIndex].Position;
+            var laneLength = Lanes[targetLaneIndex].Length;
+            effectiveLeaderDistance = MathUtilities.ComputeDistanceAlongLane(self.Position, leaderPosition, laneLength);
+        }
+
+        var effectiveLeaderIsIncoming = false;
+        if (incomingAheadIndex >= 0 && incomingAheadDistance < effectiveLeaderDistance) {
+            effectiveLeaderIndex = incomingAheadIndex;
+            effectiveLeaderDistance = incomingAheadDistance;
+            effectiveLeaderIsIncoming = true;
+        }
+
+        // If the nearest ahead is an incoming merger within a short buffer, avoid switching into that lane.
+        if (effectiveLeaderIsIncoming && effectiveLeaderDistance < IncomingAheadReservationDistance) {
+            return;
+        }
+
+        // Choose the closest behind entity as the effective follower in the target lane.
+        var effectiveFollowerIndex = laneFollowerIndex;
+        var effectiveBehindDistance = float.MaxValue;
+        if (laneFollowerIndex >= 0) {
+            var followerPosition = Vehicles[laneFollowerIndex].Position;
+            var laneLength = Lanes[targetLaneIndex].Length;
+            effectiveBehindDistance = MathUtilities.ComputeDistanceAlongLane(followerPosition, self.Position, laneLength);
+        }
+
+        if (incomingBehindIndex >= 0 && incomingBehindDistance < effectiveBehindDistance) {
+            effectiveFollowerIndex = incomingBehindIndex;
+        }
+
+        // Safety for the effective new follower (may be in the target lane already or incoming from neighbor).
         var safeForNewFollower = true;
         var currentNewFollowerAcceleration = 0.0f; // old = current world (reuse IDM)
         var newNewFollowerAcceleration = 0.0f; // new = with us as leader (recompute)
-        if (newFollowerIndex >= 0) {
-            var newFollower = Vehicles[newFollowerIndex];
-            var newFollowerIdm = IdmParameters[newFollowerIndex];
+        if (effectiveFollowerIndex >= 0) {
+            var newFollower = Vehicles[effectiveFollowerIndex];
+            var newFollowerIdm = IdmParameters[effectiveFollowerIndex];
 
-            currentNewFollowerAcceleration = Accelerations[newFollowerIndex]; // reuse IDM old accel
+            currentNewFollowerAcceleration = Accelerations[effectiveFollowerIndex]; // reuse IDM old accel
             newNewFollowerAcceleration = AccelerationBetween(newFollower, newFollowerIdm, self, Lanes[targetLaneIndex].SpeedLimit);
 
             if (newNewFollowerAcceleration < -mobil.SafeBrakingDeceleration)
@@ -107,11 +146,11 @@ public struct MobilLaneChangeDecisionJob : IJobParallelFor {
         var othersDelta = 0.0f;
         if (oldFollowerIndex >= 0)
             othersDelta += (newOldFollowerAcceleration - currentOldFollowerAcceleration);
-        if (newFollowerIndex >= 0)
+        if (effectiveFollowerIndex >= 0)
             othersDelta += (newNewFollowerAcceleration - currentNewFollowerAcceleration);
 
         // Self in target lane (new)
-        var newSelfAcceleration = ComputeAccelerationAsFollower(self, selfIdm, targetLaneIndex, newLeaderIndex);
+        var newSelfAcceleration = ComputeAccelerationAsFollower(self, selfIdm, targetLaneIndex, effectiveLeaderIndex);
         var incentive = (newSelfAcceleration - oldSelfAcceleration) + mobil.Politeness * othersDelta;
         if (incentive > bestIncentive) {
             bestIncentive = incentive;
@@ -146,6 +185,46 @@ public struct MobilLaneChangeDecisionJob : IJobParallelFor {
         }
 
         return (first, last);
+    }
+
+    private void FindNearestIncomingHazardsForTarget(int targetLaneIndex, float selfPosition, out int aheadIndex, out float aheadDistance, out int behindIndex, out float behindDistance) {
+        aheadIndex = -1;
+        aheadDistance = float.MaxValue;
+        behindIndex = -1;
+        behindDistance = float.MaxValue;
+
+        var leftLaneIndex = Lanes[targetLaneIndex].LeftLaneIndex;
+        if (leftLaneIndex >= 0) {
+            ScanLaneForIncomingHazards(leftLaneIndex, targetLaneIndex, selfPosition, ref aheadIndex, ref aheadDistance, ref behindIndex, ref behindDistance);
+        }
+        var rightLaneIndex = Lanes[targetLaneIndex].RightLaneIndex;
+        if (rightLaneIndex >= 0) {
+            ScanLaneForIncomingHazards(rightLaneIndex, targetLaneIndex, selfPosition, ref aheadIndex, ref aheadDistance, ref behindIndex, ref behindDistance);
+        }
+    }
+
+    private void ScanLaneForIncomingHazards(int scanLaneIndex, int targetLaneIndex, float selfPosition, ref int aheadIndex, ref float aheadDistance, ref int behindIndex, ref float behindDistance) {
+        var laneLength = Lanes[targetLaneIndex].Length;
+        var range = LaneRanges[scanLaneIndex];
+        var end = range.Start + range.Count;
+        for (var i = range.Start; i < end; i++) {
+            var lcs = LaneChangeStates[i];
+            if (!lcs.Active || lcs.TargetLaneIndex != targetLaneIndex)
+                continue;
+            var other = Vehicles[i];
+            var delta = other.Position - selfPosition;
+            var currentAheadDistance = MathUtilities.ComputeDistanceAlongLane(delta, laneLength);
+            if (currentAheadDistance < aheadDistance) {
+                aheadDistance = currentAheadDistance;
+                aheadIndex = i;
+            }
+
+            var currentBehindDistance = MathUtilities.ComputeDistanceAlongLane(-delta, laneLength); // self - other
+            if (currentBehindDistance < behindDistance) {
+                behindDistance = currentBehindDistance;
+                behindIndex = i;
+            }
+        }
     }
 
     private float ComputeAccelerationAsFollower(in VehicleState follower, in IdmParameters followerIdm, int laneIndex, int leaderIndex) {

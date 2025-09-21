@@ -72,11 +72,7 @@ public struct IntelligentDriverModelJob : IJobParallelFor {
                 // only vehicles merging into this lane
                 continue;
 
-            var other = Vehicles[i];
-            var distanceAhead = other.Position - selfPosition;
-            if (distanceAhead <= 0f)
-                distanceAhead += laneLength;
-
+            var distanceAhead = MathUtilities.ComputeDistanceAlongLane(selfPosition, Vehicles[i].Position, laneLength);
             if (distanceAhead < bestAheadCenterDistance) {
                 bestAheadCenterDistance = distanceAhead;
                 bestHazardIndex = i;

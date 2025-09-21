@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Sirenix.OdinInspector;
+using TrafficSimulation.Core.Random;
 using TrafficSimulation.Sim.Authoring;
 using TrafficSimulation.Sim.Components;
 using TrafficSimulation.Sim.Jobs;
@@ -113,7 +114,7 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
             vehicleStates[i] = new VehicleState(vehicle.VehicleId, laneIdToIndex[vehicle.Lane.LaneId], position, speed, 0.0f, vehicle.Length);
             idmParameters[i] = new IdmParameters(vehicle.DesiredSpeed, vehicle.MaxAcceleration, vehicle.ComfortableBraking, vehicle.HeadwayTime, vehicle.MinGap, vehicle.AccelerationExponent);
             mobilParameters[i] = new MobilParameters(vehicle.Politeness, vehicle.AdvantageThreshold, vehicle.SafeBrakingDeceleration, vehicle.MinTimeBetweenLaneChanges);
-            laneChangeStates[i] = default;
+            laneChangeStates[i] = new LaneChangeState() { Cooldown = Rand.Range(0.0f, mobilParameters[i].MinTimeBetweenLaneChanges) };
             accelerations[i] = 0.0f;
         }
 
