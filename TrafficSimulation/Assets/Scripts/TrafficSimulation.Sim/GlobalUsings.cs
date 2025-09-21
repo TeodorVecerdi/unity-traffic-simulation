@@ -6,7 +6,6 @@ global using System.Text.Json;
 global using System.Text.Json.Serialization;
 global using System.Threading;
 global using Cysharp.Threading.Tasks;
-global using Sirenix.OdinInspector;
 global using TrafficSimulation.Core.Extensions;
 global using UnityEngine;
 global using static TrafficSimulation.Core.Extensions.ObjectExtensions;

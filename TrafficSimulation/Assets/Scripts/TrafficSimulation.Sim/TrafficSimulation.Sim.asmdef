@@ -7,7 +7,10 @@
         "LitMotion.Extensions",
         "UniTask",
         "Vecerdi.Extensions.Logging",
-        "Vecerdi.Extensions.DependencyInjection"
+        "Vecerdi.Extensions.DependencyInjection",
+        "Unity.Burst",
+        "Unity.Collections",
+        "Unity.Mathematics"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
