@@ -25,7 +25,7 @@ public static class IntegrationMath {
         // wrap around [0, length)
         Hint.Assume(s >= 0.0f);
         if (s >= length)
-            s -= length;
+            s -= length * math.floor(s / length);
 
         vehicleState.Speed = v;
         vehicleState.Position = s;
