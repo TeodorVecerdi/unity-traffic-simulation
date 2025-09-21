@@ -185,6 +185,7 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
         var vehicles = m_WorldState.Vehicles;
         var lanes = m_WorldState.Lanes;
         var laneChangeStates = m_WorldState.LaneChangeStates;
+        var groupStates = m_WorldState.TrafficLightGroupStates;
         for (var i = 0; i < vehicles.Length; i++) {
             var vehicleState = vehicles[i];
             if (!m_VehicleIdMap.TryGetValue(vehicleState.VehicleId, out var vehicleAuthoring)) {
@@ -222,6 +223,13 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
             vehicleAuthoring.transform.SetPositionAndRotation(position, rotation);
             vehicleAuthoring.VehicleState = vehicleState;
             vehicleAuthoring.LaneChangeState = laneChangeState;
+        }
+
+        // Push group state time to authoring for gizmo coloring
+        if (m_TrafficLightGroups != null && m_TrafficLightGroups.Length == groupStates.Length) {
+            for (var gi = 0; gi < m_TrafficLightGroups.Length; gi++) {
+                m_TrafficLightGroups[gi].SetRuntimeTime(groupStates[gi].TimeInCycleSeconds);
+            }
         }
     }
 
@@ -336,6 +344,9 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
             Lanes = m_WorldState.Lanes,
             LaneRanges = m_WorldState.LaneRanges,
             LaneChangeStates = m_WorldState.LaneChangeStates,
+            TrafficLightGroupParameters = m_WorldState.TrafficLightGroupParameters,
+            TrafficLightGroupStates = m_WorldState.TrafficLightGroupStates,
+            TrafficLightLaneBindings = m_WorldState.TrafficLightLaneBindings,
             Accelerations = m_WorldState.Accelerations,
         }.Schedule(m_WorldState.Vehicles.Length, 64, trafficLightsAndSorting);
 
@@ -348,6 +359,9 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
             LaneRanges = m_WorldState.LaneRanges,
             Accelerations = m_WorldState.Accelerations,
             LaneChangeStates = m_WorldState.LaneChangeStates,
+            TrafficLightGroupParameters = m_WorldState.TrafficLightGroupParameters,
+            TrafficLightGroupStates = m_WorldState.TrafficLightGroupStates,
+            TrafficLightLaneBindings = m_WorldState.TrafficLightLaneBindings,
         }.Schedule(m_WorldState.Vehicles.Length, 64, idmJob);
 
         // Integrate vehicle state
