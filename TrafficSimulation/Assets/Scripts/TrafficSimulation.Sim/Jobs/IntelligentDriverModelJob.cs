@@ -33,16 +33,19 @@ public struct IntelligentDriverModelJob : IJobParallelFor {
             baseAcceleration = IdmMath.AccelerationWithLeader(self.Speed, relativeSpeedToLeader, math.max(IdmMath.Epsilon, leaderGap), lane.SpeedLimit, in idm);
         }
 
+        // FIXME: Cross-lane checks work on the assumption that the current vehicle's lane has the same origin and
+        //        length as the target lane. We should instead change this to map the current position to the target
+        //        lane's coordinate system, but this requires more extensive refactoring.
 
         // Consider only vehicles that are entering this lane (target == self lane) and only from immediate neighbor lanes.
         var incomingHazardVehicleIndex = -1;
         var nearestAheadCenterDistance = float.MaxValue;
         if (lane.LeftLaneIndex >= 0) {
-            ScanLaneForIncomingHazard(lane.LeftLaneIndex, index, self.LaneIndex, self.Position, ref incomingHazardVehicleIndex, ref nearestAheadCenterDistance);
+            ScanLaneForIncomingHazard(lane.LeftLaneIndex, self.LaneIndex, self.Position, ref incomingHazardVehicleIndex, ref nearestAheadCenterDistance);
         }
 
         if (lane.RightLaneIndex >= 0) {
-            ScanLaneForIncomingHazard(lane.RightLaneIndex, index, self.LaneIndex, self.Position, ref incomingHazardVehicleIndex, ref nearestAheadCenterDistance);
+            ScanLaneForIncomingHazard(lane.RightLaneIndex, self.LaneIndex, self.Position, ref incomingHazardVehicleIndex, ref nearestAheadCenterDistance);
         }
 
         if (incomingHazardVehicleIndex >= 0) {
@@ -56,23 +59,22 @@ public struct IntelligentDriverModelJob : IJobParallelFor {
         Accelerations[index] = baseAcceleration;
     }
 
-    private void ScanLaneForIncomingHazard(int laneIndex, int selfIndex, int selfLaneIndex, float selfPosition, ref int bestHazardIndex, ref float bestAheadCenterDistance) {
-        if (laneIndex < 0) return;
+    private void ScanLaneForIncomingHazard(int neighborLaneIndex, int targetLaneIndex, float selfPosition, ref int bestHazardIndex, ref float bestAheadCenterDistance) {
+        if (neighborLaneIndex < 0) return;
 
-        var range = LaneRanges[laneIndex];
-        var laneLength = Lanes[laneIndex].Length;
+        var range = LaneRanges[neighborLaneIndex];
+        var laneLength = Lanes[neighborLaneIndex].Length;
         var end = range.Start + range.Count;
 
         for (var i = range.Start; i < end; i++) {
-            if (i == selfIndex) continue;
-
             var laneChangeState = LaneChangeStates[i];
             if (!laneChangeState.Active)
                 continue;
-            if (laneChangeState.TargetLaneIndex != selfLaneIndex)
+            if (laneChangeState.TargetLaneIndex != targetLaneIndex)
                 // only vehicles merging into this lane
                 continue;
 
+            // FIXME: Assumes aligned s-frames
             var distanceAhead = MathUtilities.ComputeDistanceAlongLane(selfPosition, Vehicles[i].Position, laneLength);
             if (distanceAhead < bestAheadCenterDistance) {
                 bestAheadCenterDistance = distanceAhead;
