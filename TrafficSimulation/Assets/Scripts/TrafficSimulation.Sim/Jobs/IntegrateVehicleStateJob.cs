@@ -1,6 +1,7 @@
 ﻿using TrafficSimulation.Sim.Components;
 using TrafficSimulation.Sim.Math;
 using Unity.Burst;
+using Unity.Burst.CompilerServices;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -17,6 +18,11 @@ public struct IntegrateVehicleStateJob : IJobParallelFor {
     [ReadOnly] public NativeArray<LaneInfo> Lanes;
 
     public void Execute(int index) {
+        // Invariants (Burst hints)
+        Hint.Assume(Vehicles.Length == LaneChangeStates.Length);
+        Hint.Assume(Vehicles.Length == MobilParameters.Length);
+        Hint.Assume(Vehicles.Length == Accelerations.Length);
+
         var self = Vehicles[index];
         var lane = Lanes[self.LaneIndex];
         self.Acceleration = Accelerations[index];
