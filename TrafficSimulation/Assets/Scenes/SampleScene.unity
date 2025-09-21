@@ -667,6 +667,68 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 5709b6b8033c2ad4e9790ad9b73327a6, type: 3}
   m_PrefabInstance: {fileID: 299728648}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &307906290
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 307906292}
+  - component: {fileID: 307906291}
+  m_Layer: 0
+  m_Name: Vehicle_7
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &307906291
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 307906290}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44c862237f934b998c9e372982eeea6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TrafficSimulation.Sim::TrafficSimulation.Sim.Authoring.VehicleAuthoring
+  m_VehicleId: 6
+  m_Lane: {fileID: 2123894895}
+  m_Length: 4.5
+  m_InitialPosition: 97.6
+  m_InitialSpeed: 10
+  m_DesiredSpeed: 30
+  m_MaxAcceleration: 1.4
+  m_ComfortableBraking: 2
+  m_HeadwayTime: 1.6
+  m_MinGap: 2
+  m_AccelerationExponent: 4
+  m_Politeness: 0.1
+  m_AdvantageThreshold: 0.2
+  m_SafeBrakingDeceleration: 4
+  m_MinTimeBetweenLaneChanges: 2
+  m_VehicleColor: {r: 0, g: 0.5426712, b: 1, a: 1}
+  m_VehicleWidth: 2
+  m_AlwaysDrawGizmos: 1
+--- !u!4 &307906292
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 307906290}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &318339416
 GameObject:
   m_ObjectHideFlags: 0
@@ -713,7 +775,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: TrafficSimulation.Sim::TrafficSimulation.Sim.Authoring.LaneAuthoring
   m_LaneId: 3
   m_Length: 230
-  m_Loop: 1
   m_LeftLane: {fileID: 1220921425}
   m_RightLane: {fileID: 0}
   m_SpeedLimit: 20
@@ -1917,7 +1978,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: TrafficSimulation.Sim::TrafficSimulation.Sim.Authoring.LaneAuthoring
   m_LaneId: 2
   m_Length: 230
-  m_Loop: 1
   m_LeftLane: {fileID: 2123894895}
   m_RightLane: {fileID: 0}
   m_SpeedLimit: 20
@@ -1927,6 +1987,68 @@ MonoBehaviour:
   m_ConnectionGizmoColor: {r: 0, g: 1, b: 1, a: 1}
   m_ConnectionGizmoSize: 0.1
   m_AlwaysDrawGizmos: 1
+--- !u!1 &892480837
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 892480839}
+  - component: {fileID: 892480838}
+  m_Layer: 0
+  m_Name: Vehicle_6
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &892480838
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 892480837}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44c862237f934b998c9e372982eeea6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TrafficSimulation.Sim::TrafficSimulation.Sim.Authoring.VehicleAuthoring
+  m_VehicleId: 5
+  m_Lane: {fileID: 2123894895}
+  m_Length: 4.5
+  m_InitialPosition: 81
+  m_InitialSpeed: 10
+  m_DesiredSpeed: 30
+  m_MaxAcceleration: 1.4
+  m_ComfortableBraking: 2
+  m_HeadwayTime: 1.6
+  m_MinGap: 2
+  m_AccelerationExponent: 4
+  m_Politeness: 0.1
+  m_AdvantageThreshold: 0.2
+  m_SafeBrakingDeceleration: 4
+  m_MinTimeBetweenLaneChanges: 2
+  m_VehicleColor: {r: 0.16966009, g: 0, b: 1, a: 1}
+  m_VehicleWidth: 2
+  m_AlwaysDrawGizmos: 1
+--- !u!4 &892480839
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 892480837}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &958865032
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2124,7 +2246,7 @@ GameObject:
   - component: {fileID: 1056611532}
   - component: {fileID: 1056611531}
   m_Layer: 0
-  m_Name: Vehicle
+  m_Name: Vehicle_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2146,7 +2268,7 @@ MonoBehaviour:
   m_Lane: {fileID: 2123894895}
   m_Length: 4.5
   m_InitialPosition: 6.2
-  m_InitialSpeed: 0
+  m_InitialSpeed: 10
   m_DesiredSpeed: 30
   m_MaxAcceleration: 1.4
   m_ComfortableBraking: 2
@@ -2373,6 +2495,54 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 0607e064bba353042889a463af2b42a7, type: 3}
   m_PrefabInstance: {fileID: 1157801976}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1176212755
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1176212757}
+  - component: {fileID: 1176212756}
+  m_Layer: 0
+  m_Name: Simulator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1176212756
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1176212755}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af42401fa5e14db3834f30a721e9de21, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TrafficSimulation.Sim::TrafficSimulation.Sim.TrafficSimulationController
+  m_TimeStep: 0.02
+  m_TimeScale: 1
+  m_Paused: 0
+  m_MaxStepsPerFrame: 8
+--- !u!4 &1176212757
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1176212755}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1197296495
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2470,7 +2640,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: TrafficSimulation.Sim::TrafficSimulation.Sim.Authoring.LaneAuthoring
   m_LaneId: 1
   m_Length: 230
-  m_Loop: 1
   m_LeftLane: {fileID: 0}
   m_RightLane: {fileID: 318339418}
   m_SpeedLimit: 30
@@ -2881,6 +3050,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: suv_1
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: a65900759b4dba34e849333a5a199af4, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3190,6 +3363,68 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: a65900759b4dba34e849333a5a199af4, type: 3}
   m_PrefabInstance: {fileID: 1531783429}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1568978748
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1568978750}
+  - component: {fileID: 1568978749}
+  m_Layer: 0
+  m_Name: Vehicle_8
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1568978749
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1568978748}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44c862237f934b998c9e372982eeea6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TrafficSimulation.Sim::TrafficSimulation.Sim.Authoring.VehicleAuthoring
+  m_VehicleId: 7
+  m_Lane: {fileID: 2123894895}
+  m_Length: 4.5
+  m_InitialPosition: 113.7
+  m_InitialSpeed: 10
+  m_DesiredSpeed: 30
+  m_MaxAcceleration: 1.4
+  m_ComfortableBraking: 2
+  m_HeadwayTime: 1.6
+  m_MinGap: 2
+  m_AccelerationExponent: 4
+  m_Politeness: 0.1
+  m_AdvantageThreshold: 0.2
+  m_SafeBrakingDeceleration: 4
+  m_MinTimeBetweenLaneChanges: 2
+  m_VehicleColor: {r: 0, g: 1, b: 0.6696255, a: 1}
+  m_VehicleWidth: 2
+  m_AlwaysDrawGizmos: 1
+--- !u!4 &1568978750
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1568978748}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1572612487
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3256,6 +3491,68 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4dfdfead3bfce2746b6709ca2c0af194, type: 3}
   m_PrefabInstance: {fileID: 1572612487}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1590407961
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1590407963}
+  - component: {fileID: 1590407962}
+  m_Layer: 0
+  m_Name: Vehicle_5
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1590407962
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1590407961}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44c862237f934b998c9e372982eeea6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TrafficSimulation.Sim::TrafficSimulation.Sim.Authoring.VehicleAuthoring
+  m_VehicleId: 4
+  m_Lane: {fileID: 2123894895}
+  m_Length: 4.5
+  m_InitialPosition: 64.7
+  m_InitialSpeed: 10
+  m_DesiredSpeed: 30
+  m_MaxAcceleration: 1.8
+  m_ComfortableBraking: 3
+  m_HeadwayTime: 1
+  m_MinGap: 0.5
+  m_AccelerationExponent: 4
+  m_Politeness: 0.1
+  m_AdvantageThreshold: 0.2
+  m_SafeBrakingDeceleration: 4
+  m_MinTimeBetweenLaneChanges: 2
+  m_VehicleColor: {r: 0.833622, g: 0, b: 1, a: 1}
+  m_VehicleWidth: 2
+  m_AlwaysDrawGizmos: 1
+--- !u!4 &1590407963
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1590407961}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1678658502
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3318,6 +3615,68 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 36e665ca6c87ead4c8210352a149d005, type: 3}
   m_PrefabInstance: {fileID: 1678658502}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1682453626
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1682453628}
+  - component: {fileID: 1682453627}
+  m_Layer: 0
+  m_Name: Vehicle_3
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1682453627
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1682453626}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44c862237f934b998c9e372982eeea6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TrafficSimulation.Sim::TrafficSimulation.Sim.Authoring.VehicleAuthoring
+  m_VehicleId: 2
+  m_Lane: {fileID: 2123894895}
+  m_Length: 4.5
+  m_InitialPosition: 37.8
+  m_InitialSpeed: 10
+  m_DesiredSpeed: 25
+  m_MaxAcceleration: 1.4
+  m_ComfortableBraking: 2
+  m_HeadwayTime: 1.6
+  m_MinGap: 2
+  m_AccelerationExponent: 4
+  m_Politeness: 0.1
+  m_AdvantageThreshold: 0.2
+  m_SafeBrakingDeceleration: 4
+  m_MinTimeBetweenLaneChanges: 2
+  m_VehicleColor: {r: 1, g: 0.47856107, b: 0, a: 1}
+  m_VehicleWidth: 2
+  m_AlwaysDrawGizmos: 1
+--- !u!4 &1682453628
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1682453626}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1687314397
 GameObject:
   m_ObjectHideFlags: 0
@@ -3436,6 +3795,68 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 5709b6b8033c2ad4e9790ad9b73327a6, type: 3}
   m_PrefabInstance: {fileID: 1702220300}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1784838162
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1784838164}
+  - component: {fileID: 1784838163}
+  m_Layer: 0
+  m_Name: Vehicle_2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1784838163
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1784838162}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44c862237f934b998c9e372982eeea6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TrafficSimulation.Sim::TrafficSimulation.Sim.Authoring.VehicleAuthoring
+  m_VehicleId: 1
+  m_Lane: {fileID: 2123894895}
+  m_Length: 4.5
+  m_InitialPosition: 26.76
+  m_InitialSpeed: 10
+  m_DesiredSpeed: 25
+  m_MaxAcceleration: 1.4
+  m_ComfortableBraking: 2
+  m_HeadwayTime: 1.6
+  m_MinGap: 2
+  m_AccelerationExponent: 4
+  m_Politeness: 0.1
+  m_AdvantageThreshold: 0.2
+  m_SafeBrakingDeceleration: 4
+  m_MinTimeBetweenLaneChanges: 2
+  m_VehicleColor: {r: 0, g: 1, b: 0.28909588, a: 1}
+  m_VehicleWidth: 2
+  m_AlwaysDrawGizmos: 1
+--- !u!4 &1784838164
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1784838162}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1796042782
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3502,6 +3923,68 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4dfdfead3bfce2746b6709ca2c0af194, type: 3}
   m_PrefabInstance: {fileID: 1796042782}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1871528209
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1871528211}
+  - component: {fileID: 1871528210}
+  m_Layer: 0
+  m_Name: Vehicle_4
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1871528210
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1871528209}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44c862237f934b998c9e372982eeea6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TrafficSimulation.Sim::TrafficSimulation.Sim.Authoring.VehicleAuthoring
+  m_VehicleId: 3
+  m_Lane: {fileID: 2123894895}
+  m_Length: 4.5
+  m_InitialPosition: 55.1
+  m_InitialSpeed: 10
+  m_DesiredSpeed: 25
+  m_MaxAcceleration: 1.4
+  m_ComfortableBraking: 2
+  m_HeadwayTime: 1.6
+  m_MinGap: 2
+  m_AccelerationExponent: 4
+  m_Politeness: 0.1
+  m_AdvantageThreshold: 0.2
+  m_SafeBrakingDeceleration: 4
+  m_MinTimeBetweenLaneChanges: 2
+  m_VehicleColor: {r: 1, g: 0, b: 0.25980568, a: 1}
+  m_VehicleWidth: 2
+  m_AlwaysDrawGizmos: 1
+--- !u!4 &1871528211
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1871528209}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1880757472
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4030,7 +4513,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: TrafficSimulation.Sim::TrafficSimulation.Sim.Authoring.LaneAuthoring
   m_LaneId: 0
   m_Length: 230
-  m_Loop: 1
   m_LeftLane: {fileID: 0}
   m_RightLane: {fileID: 878900923}
   m_SpeedLimit: 30
@@ -4070,4 +4552,12 @@ SceneRoots:
   - {fileID: 1433128251}
   - {fileID: 2099351332}
   - {fileID: 1056611532}
+  - {fileID: 1784838164}
+  - {fileID: 1682453628}
+  - {fileID: 1871528211}
+  - {fileID: 1590407963}
+  - {fileID: 892480839}
+  - {fileID: 307906292}
+  - {fileID: 1568978750}
   - {fileID: 1449083028}
+  - {fileID: 1176212757}
