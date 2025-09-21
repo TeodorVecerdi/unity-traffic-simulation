@@ -11,33 +11,24 @@ public sealed class WorldState(
     NativeArray<LaneVehicleRange> laneRanges
 ) : IDisposable {
     // Per-vehicle data
-    public readonly NativeArray<VehicleState> Vehicles = vehicles;
-    public readonly NativeArray<IdmParameters> IdmParameters = idmParameters;
-    public readonly NativeArray<float> Accelerations = accelerations;
+    public NativeArray<VehicleState> Vehicles = vehicles;
+    public NativeArray<IdmParameters> IdmParameters = idmParameters;
+    public NativeArray<float> Accelerations = accelerations;
 
     // Per-lane data
-    public readonly NativeArray<LaneInfo> Lanes = lanes;
-    public readonly NativeArray<LaneVehicleRange> LaneRanges = laneRanges;
+    public NativeArray<LaneInfo> Lanes = lanes;
+    public NativeArray<LaneVehicleRange> LaneRanges = laneRanges;
 
     public void Dispose() {
-        var vehicles = Vehicles;
-        if (vehicles.IsCreated)
-            vehicles.Dispose();
-
-        var idmParameters = IdmParameters;
-        if (idmParameters.IsCreated)
-            idmParameters.Dispose();
-
-        var accelerations = Accelerations;
-        if (accelerations.IsCreated)
-            accelerations.Dispose();
-
-        var lanes = Lanes;
-        if (lanes.IsCreated)
-            lanes.Dispose();
-
-        var laneRanges = LaneRanges;
-        if (laneRanges.IsCreated)
-            laneRanges.Dispose();
+        if (Vehicles.IsCreated)
+            Vehicles.Dispose();
+        if (IdmParameters.IsCreated)
+            IdmParameters.Dispose();
+        if (Accelerations.IsCreated)
+            Accelerations.Dispose();
+        if (Lanes.IsCreated)
+            Lanes.Dispose();
+        if (LaneRanges.IsCreated)
+            LaneRanges.Dispose();
     }
 }
