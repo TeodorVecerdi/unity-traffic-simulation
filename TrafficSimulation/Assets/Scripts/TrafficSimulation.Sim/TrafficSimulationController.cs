@@ -1,8 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
 using Sirenix.OdinInspector;
+using TrafficSimulation.Core.Random;
 using TrafficSimulation.Sim.Authoring;
 using TrafficSimulation.Sim.Components;
 using TrafficSimulation.Sim.Jobs;
+using TrafficSimulation.Sim.Math;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -83,6 +85,8 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
         var vehicles = allVehicles.Where(v => v != null && v.Lane != null).ToList();
         var vehicleStates = new NativeArray<VehicleState>(vehicles.Count, Allocator.Persistent);
         var idmParameters = new NativeArray<IdmParameters>(vehicles.Count, Allocator.Persistent);
+        var mobilParameters = new NativeArray<MobilParameters>(vehicles.Count, Allocator.Persistent);
+        var laneChangeStates = new NativeArray<LaneChangeState>(vehicles.Count, Allocator.Persistent);
         var accelerations = new NativeArray<float>(vehicles.Count, Allocator.Persistent);
 
         var lanes = FindObjectsByType<LaneAuthoring>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
@@ -109,6 +113,8 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
 
             vehicleStates[i] = new VehicleState(vehicle.VehicleId, laneIdToIndex[vehicle.Lane.LaneId], position, speed, 0.0f, vehicle.Length);
             idmParameters[i] = new IdmParameters(vehicle.DesiredSpeed, vehicle.MaxAcceleration, vehicle.ComfortableBraking, vehicle.HeadwayTime, vehicle.MinGap, vehicle.AccelerationExponent);
+            mobilParameters[i] = new MobilParameters(vehicle.Politeness, vehicle.AdvantageThreshold, vehicle.SafeBrakingDeceleration, vehicle.MinTimeBetweenLaneChanges);
+            laneChangeStates[i] = new LaneChangeState() { Cooldown = Rand.Range(0.0f, mobilParameters[i].MinTimeBetweenLaneChanges) };
             accelerations[i] = 0.0f;
         }
 
@@ -122,7 +128,7 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
             laneRanges[i] = new LaneVehicleRange(0, 0);
         }
 
-        m_WorldState = new WorldState(vehicleStates, idmParameters, accelerations, laneData, laneRanges);
+        m_WorldState = new WorldState(vehicleStates, idmParameters, mobilParameters, laneChangeStates, accelerations, laneData, laneRanges);
     }
 
     private void SyncRenderers() {
@@ -131,7 +137,9 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
 
         var vehicles = m_WorldState.Vehicles;
         var lanes = m_WorldState.Lanes;
-        foreach (var vehicleState in vehicles) {
+        var laneChangeStates = m_WorldState.LaneChangeStates;
+        for (var i = 0; i < vehicles.Length; i++) {
+            var vehicleState = vehicles[i];
             if (!m_VehicleIdMap.TryGetValue(vehicleState.VehicleId, out var vehicleAuthoring)) {
                 Logger.LogWarning("No VehicleAuthoring found for VehicleId: {VehicleId}", vehicleState.VehicleId);
                 continue;
@@ -146,12 +154,59 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
                 continue;
             }
 
-            var laneTransform = laneAuthoring.transform;
-            var position = laneTransform.position + laneTransform.forward * vehicleState.Position;
-            var rotation = Quaternion.LookRotation(laneTransform.forward, Vector3.up);
+            var laneChangeState = laneChangeStates[i];
+            float3 position;
+            float3 forward;
+            if (laneChangeState.Active) {
+                // Initialize geometry on first frame of lane change
+                if (math.lengthsq(laneChangeState.Forward) < 1e-6f) {
+                    InitializeLaneChangeGeometry(ref laneChangeState, in vehicleState);
+                    laneChangeStates[i] = laneChangeState;
+                }
+
+                MathUtilities.EvaluateLaneChangeCurve(in laneChangeState, laneChangeState.ProgressS, out position, out forward);
+            } else {
+                var laneTransform = laneAuthoring.transform;
+                position = laneTransform.position + laneTransform.forward * vehicleState.Position;
+                forward = laneTransform.forward;
+            }
+
+            var rotation = Quaternion.LookRotation(forward, Vector3.up);
             vehicleAuthoring.transform.SetPositionAndRotation(position, rotation);
             vehicleAuthoring.VehicleState = vehicleState;
+            vehicleAuthoring.LaneChangeState = laneChangeState;
         }
+    }
+
+    private void InitializeLaneChangeGeometry(ref LaneChangeState laneChangeState, in VehicleState vehicleState) {
+        // Get source and target lanes
+        if (!m_LaneIdMap.TryGetValue(m_WorldState!.Lanes[vehicleState.LaneIndex].LaneId, out var sourceLane))
+            return;
+        if (laneChangeState.TargetLaneIndex < 0 || laneChangeState.TargetLaneIndex >= m_WorldState!.Lanes.Length)
+            return;
+        var targetLaneInfo = m_WorldState.Lanes[laneChangeState.TargetLaneIndex];
+        if (!m_LaneIdMap.TryGetValue(targetLaneInfo.LaneId, out var targetLane))
+            return;
+
+        var sourceTransform = sourceLane.transform;
+        var targetTransform = targetLane.transform;
+
+        var sourcePosition = (float3)sourceTransform.position;
+        var targetPosition = (float3)targetTransform.position;
+        var sourceForward = (float3)sourceTransform.forward;
+        var sourceRight = (float3)sourceTransform.right;
+
+        // Base curve frame at start s=0 (current longitudinal position on source lane)
+        var p0 = sourcePosition + sourceForward * vehicleState.Position;
+
+        // Signed lateral offset from source to target lane center projected on left axis
+        var delta = targetPosition - sourcePosition;
+        var lateralOffset = math.dot(delta, -sourceRight);
+
+        laneChangeState.P0 = p0;
+        laneChangeState.Forward = sourceForward;
+        laneChangeState.Left = -sourceRight;
+        laneChangeState.LateralOffset = lateralOffset;
     }
 
     private void DestroyInvalidVehicles(VehicleAuthoring[] allVehicles) {
@@ -214,6 +269,8 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
             LaneRanges = m_WorldState.LaneRanges,
             Vehicles = m_WorldState.Vehicles,
             IdmParameters = m_WorldState.IdmParameters,
+            MobilParameters = m_WorldState.MobilParameters,
+            LaneChangeStates = m_WorldState.LaneChangeStates,
         }.Schedule(safetyCheckJob);
 
         // Compute accelerations using IDM
@@ -222,16 +279,30 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
             IdmParameters = m_WorldState.IdmParameters,
             Lanes = m_WorldState.Lanes,
             LaneRanges = m_WorldState.LaneRanges,
+            LaneChangeStates = m_WorldState.LaneChangeStates,
             Accelerations = m_WorldState.Accelerations,
         }.Schedule(m_WorldState.Vehicles.Length, 64, sortVehiclesJob);
+
+        // Decide lane changes (MOBIL)
+        var mobilJob = new MobilLaneChangeDecisionJob {
+            Vehicles = m_WorldState.Vehicles,
+            IdmParameters = m_WorldState.IdmParameters,
+            MobilParameters = m_WorldState.MobilParameters,
+            Lanes = m_WorldState.Lanes,
+            LaneRanges = m_WorldState.LaneRanges,
+            Accelerations = m_WorldState.Accelerations,
+            LaneChangeStates = m_WorldState.LaneChangeStates,
+        }.Schedule(m_WorldState.Vehicles.Length, 64, idmJob);
 
         // Integrate vehicle state
         var integrateJob = new IntegrateVehicleStateJob {
             DeltaTime = timeStep,
             Vehicles = m_WorldState.Vehicles,
-            Lanes = m_WorldState.Lanes,
+            LaneChangeStates = m_WorldState.LaneChangeStates,
+            MobilParameters = m_WorldState.MobilParameters,
             Accelerations = m_WorldState.Accelerations,
-        }.Schedule(m_WorldState.Vehicles.Length, 64, idmJob);
+            Lanes = m_WorldState.Lanes,
+        }.Schedule(m_WorldState.Vehicles.Length, 64, mobilJob);
 
         return integrateJob;
     }

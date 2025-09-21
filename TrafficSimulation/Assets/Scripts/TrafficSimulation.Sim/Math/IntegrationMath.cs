@@ -1,4 +1,5 @@
-﻿using TrafficSimulation.Sim.Components;
+﻿using System.Runtime.CompilerServices;
+using TrafficSimulation.Sim.Components;
 using Unity.Burst;
 using Unity.Burst.CompilerServices;
 using Unity.Mathematics;
@@ -19,8 +20,9 @@ public static class IntegrationMath {
     public static void Integrate(float dt, ref VehicleState vehicleState, in LaneInfo laneInfo) {
         var length = laneInfo.Length;
 
-        var v = math.max(0.0f, vehicleState.Speed + vehicleState.Acceleration * dt);
-        var s = vehicleState.Position + (vehicleState.Speed + v) * 0.5f * dt;
+        var s = vehicleState.Position;
+        var v = vehicleState.Speed;
+        Integrate(dt, ref s, ref v, vehicleState.Acceleration);
 
         // wrap around [0, length)
         Hint.Assume(s >= 0.0f);
@@ -29,5 +31,18 @@ public static class IntegrationMath {
 
         vehicleState.Speed = v;
         vehicleState.Position = s;
+    }
+
+    [BurstCompile]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void Integrate(float dt, ref float position, ref float speed, float acceleration) {
+        // Semi-implicit Euler integration with trapezoidal rule for position
+        // v1 = v0 + a * dt
+        // s1 = s0 + (v0 + v1) / 2 * dt
+        var newSpeed = math.max(0.0f, speed + acceleration * dt);
+        var newPosition = position + (speed + newSpeed) * 0.5f * dt;
+
+        speed = newSpeed;
+        position = newPosition;
     }
 }

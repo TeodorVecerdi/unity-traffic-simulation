@@ -13,6 +13,7 @@ public struct IntelligentDriverModelJob : IJobParallelFor {
     [ReadOnly] public NativeArray<IdmParameters> IdmParameters;
     [ReadOnly] public NativeArray<LaneInfo> Lanes;
     [ReadOnly] public NativeArray<LaneVehicleRange> LaneRanges;
+    [ReadOnly] public NativeArray<LaneChangeState> LaneChangeStates;
     public NativeArray<float> Accelerations;
 
     public void Execute(int index) {
@@ -21,16 +22,65 @@ public struct IntelligentDriverModelJob : IJobParallelFor {
         var lane = Lanes[self.LaneIndex];
         var range = LaneRanges[self.LaneIndex];
 
+        // Base acceleration from in-lane leader (or free road if none)
+        float baseAcceleration;
         if (!TryGetLeader(index, in range, out var leaderIndex)) {
-            // No leader, free road ahead
-            Accelerations[index] = IdmMath.AccelerationFreeRoad(self.Speed, lane.SpeedLimit, in idm);
-            return;
+            baseAcceleration = IdmMath.AccelerationFreeRoad(self.Speed, lane.SpeedLimit, in idm);
+        } else {
+            var leader = Vehicles[leaderIndex];
+            var leaderGap = MathUtilities.BumperGap(self.Position, self.Length, leader.Position, leader.Length, lane.Length);
+            var relativeSpeedToLeader = self.Speed - leader.Speed;
+            baseAcceleration = IdmMath.AccelerationWithLeader(self.Speed, relativeSpeedToLeader, math.max(IdmMath.Epsilon, leaderGap), lane.SpeedLimit, in idm);
         }
 
-        var leader = Vehicles[leaderIndex];
-        var gap = BumperGap(self.Position, self.Length, leader.Position, leader.Length, lane.Length);
-        var relativeSpeed = self.Speed - leader.Speed;
-        Accelerations[index] = IdmMath.AccelerationWithLeader(self.Speed, relativeSpeed, math.max(IdmMath.Epsilon, gap), lane.SpeedLimit, in idm);
+        // FIXME: Cross-lane checks work on the assumption that the current vehicle's lane has the same origin and
+        //        length as the target lane. We should instead change this to map the current position to the target
+        //        lane's coordinate system, but this requires more extensive refactoring.
+
+        // Consider only vehicles that are entering this lane (target == self lane) and only from immediate neighbor lanes.
+        var incomingHazardVehicleIndex = -1;
+        var nearestAheadCenterDistance = float.MaxValue;
+        if (lane.LeftLaneIndex >= 0) {
+            ScanLaneForIncomingHazard(lane.LeftLaneIndex, self.LaneIndex, self.Position, ref incomingHazardVehicleIndex, ref nearestAheadCenterDistance);
+        }
+
+        if (lane.RightLaneIndex >= 0) {
+            ScanLaneForIncomingHazard(lane.RightLaneIndex, self.LaneIndex, self.Position, ref incomingHazardVehicleIndex, ref nearestAheadCenterDistance);
+        }
+
+        if (incomingHazardVehicleIndex >= 0) {
+            var hazard = Vehicles[incomingHazardVehicleIndex];
+            var hazardGap = MathUtilities.BumperGap(self.Position, self.Length, hazard.Position, hazard.Length, lane.Length);
+            var relativeSpeedToHazard = self.Speed - hazard.Speed;
+            var hazardAcceleration = IdmMath.AccelerationWithLeader(self.Speed, relativeSpeedToHazard, math.max(IdmMath.Epsilon, hazardGap), lane.SpeedLimit, in idm);
+            baseAcceleration = math.min(baseAcceleration, hazardAcceleration);
+        }
+
+        Accelerations[index] = baseAcceleration;
+    }
+
+    private void ScanLaneForIncomingHazard(int neighborLaneIndex, int targetLaneIndex, float selfPosition, ref int bestHazardIndex, ref float bestAheadCenterDistance) {
+        if (neighborLaneIndex < 0) return;
+
+        var range = LaneRanges[neighborLaneIndex];
+        var laneLength = Lanes[neighborLaneIndex].Length;
+        var end = range.Start + range.Count;
+
+        for (var i = range.Start; i < end; i++) {
+            var laneChangeState = LaneChangeStates[i];
+            if (!laneChangeState.Active)
+                continue;
+            if (laneChangeState.TargetLaneIndex != targetLaneIndex)
+                // only vehicles merging into this lane
+                continue;
+
+            // FIXME: Assumes aligned s-frames
+            var distanceAhead = MathUtilities.ComputeDistanceAlongLane(selfPosition, Vehicles[i].Position, laneLength);
+            if (distanceAhead < bestAheadCenterDistance) {
+                bestAheadCenterDistance = distanceAhead;
+                bestHazardIndex = i;
+            }
+        }
     }
 
     private static bool TryGetLeader(int selfIndex, in LaneVehicleRange range, out int leaderIndex) {
@@ -42,16 +92,5 @@ public struct IntelligentDriverModelJob : IJobParallelFor {
         var localIndex = selfIndex - range.Start;
         leaderIndex = range.Start + (localIndex + 1) % range.Count;
         return leaderIndex != selfIndex;
-    }
-
-    private static float BumperGap(float rearPosition, float rearLength, float frontPosition, float frontLength, float laneLength) {
-        // Center-to-center arc-length distance between vehicles
-        var d = frontPosition - rearPosition;
-        if (d < 0.0f)
-            d += laneLength;
-
-        // Bumper-to-bumper distance between vehicles
-        d -= 0.5f * (rearLength + frontLength);
-        return math.max(0.0f, d);
     }
 }

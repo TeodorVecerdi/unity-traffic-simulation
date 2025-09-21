@@ -12,10 +12,22 @@ public struct SortVehiclesAndUpdateLaneRangesJob : IJob {
     public NativeArray<LaneVehicleRange> LaneRanges;
     public NativeArray<VehicleState> Vehicles;
     public NativeArray<IdmParameters> IdmParameters;
+    public NativeArray<MobilParameters> MobilParameters;
+    public NativeArray<LaneChangeState> LaneChangeStates;
 
     public void Execute() {
+        // All per-vehicle arrays must be aligned by index.
+        Hint.Assume(Vehicles.Length == IdmParameters.Length);
+        Hint.Assume(Vehicles.Length == MobilParameters.Length);
+        Hint.Assume(Vehicles.Length == LaneChangeStates.Length);
+
+        // LaneRanges must align with Lanes by index.
+        Hint.Assume(Lanes.Length == LaneRanges.Length);
+
         // 1. Sort vehicles by (LaneIndex, Position) and keep IdmParameters aligned by index
-        DualSortByLaneAndPosition(0, Vehicles.Length - 1);
+        if (Vehicles.Length > 1) {
+            DualSortByLaneAndPosition(0, Vehicles.Length - 1);
+        }
 
         // 2. Reconstruct LaneRanges
         var laneCount = Lanes.Length;
@@ -46,6 +58,7 @@ public struct SortVehiclesAndUpdateLaneRangesJob : IJob {
 
     // In-place quicksort that swaps both Vehicles and IdmParameters to keep indices aligned
     private void DualSortByLaneAndPosition(int left, int right) {
+        if (left >= right) return;
         var i = left;
         var j = right;
         var pivot = Vehicles[(left + right) >> 1];
@@ -77,5 +90,7 @@ public struct SortVehiclesAndUpdateLaneRangesJob : IJob {
     private void Swap(int a, int b) {
         (Vehicles[a], Vehicles[b]) = (Vehicles[b], Vehicles[a]);
         (IdmParameters[a], IdmParameters[b]) = (IdmParameters[b], IdmParameters[a]);
+        (MobilParameters[a], MobilParameters[b]) = (MobilParameters[b], MobilParameters[a]);
+        (LaneChangeStates[a], LaneChangeStates[b]) = (LaneChangeStates[b], LaneChangeStates[a]);
     }
 }

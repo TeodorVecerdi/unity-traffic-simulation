@@ -710,7 +710,7 @@ MonoBehaviour:
   m_Politeness: 0.1
   m_AdvantageThreshold: 0.2
   m_SafeBrakingDeceleration: 4
-  m_MinTimeBetweenLaneChanges: 2
+  m_MinTimeBetweenLaneChanges: 3
   m_VehicleColor: {r: 0, g: 0.5426712, b: 1, a: 1}
   m_VehicleWidth: 2
   m_AlwaysDrawGizmos: 1
@@ -1375,7 +1375,7 @@ MonoBehaviour:
   m_Politeness: 0.1
   m_AdvantageThreshold: 0.2
   m_SafeBrakingDeceleration: 4
-  m_MinTimeBetweenLaneChanges: 2
+  m_MinTimeBetweenLaneChanges: 3
   m_VehicleColor: {r: 0.833622, g: 0, b: 1, a: 1}
   m_VehicleWidth: 2
   m_AlwaysDrawGizmos: 1
@@ -2092,7 +2092,7 @@ MonoBehaviour:
   m_Politeness: 0.1
   m_AdvantageThreshold: 0.2
   m_SafeBrakingDeceleration: 4
-  m_MinTimeBetweenLaneChanges: 2
+  m_MinTimeBetweenLaneChanges: 3
   m_VehicleColor: {r: 0.16966009, g: 0, b: 1, a: 1}
   m_VehicleWidth: 2
   m_AlwaysDrawGizmos: 1
@@ -2340,7 +2340,7 @@ MonoBehaviour:
   m_Politeness: 0.1
   m_AdvantageThreshold: 0.2
   m_SafeBrakingDeceleration: 4
-  m_MinTimeBetweenLaneChanges: 2
+  m_MinTimeBetweenLaneChanges: 3
   m_VehicleColor: {r: 0, g: 1, b: 1, a: 1}
   m_VehicleWidth: 2
   m_AlwaysDrawGizmos: 1
@@ -3468,7 +3468,7 @@ MonoBehaviour:
   m_Politeness: 0.1
   m_AdvantageThreshold: 0.2
   m_SafeBrakingDeceleration: 4
-  m_MinTimeBetweenLaneChanges: 2
+  m_MinTimeBetweenLaneChanges: 3
   m_VehicleColor: {r: 0, g: 1, b: 0.6696255, a: 1}
   m_VehicleWidth: 2
   m_AlwaysDrawGizmos: 1
@@ -3596,7 +3596,7 @@ MonoBehaviour:
   m_Politeness: 0.1
   m_AdvantageThreshold: 0.2
   m_SafeBrakingDeceleration: 4
-  m_MinTimeBetweenLaneChanges: 2
+  m_MinTimeBetweenLaneChanges: 3
   m_VehicleColor: {r: 0.833622, g: 0, b: 1, a: 1}
   m_VehicleWidth: 2
   m_AlwaysDrawGizmos: 1
@@ -3720,7 +3720,7 @@ MonoBehaviour:
   m_Politeness: 0.1
   m_AdvantageThreshold: 0.2
   m_SafeBrakingDeceleration: 4
-  m_MinTimeBetweenLaneChanges: 2
+  m_MinTimeBetweenLaneChanges: 3
   m_VehicleColor: {r: 1, g: 0.47856107, b: 0, a: 1}
   m_VehicleWidth: 2
   m_AlwaysDrawGizmos: 1
@@ -3900,7 +3900,7 @@ MonoBehaviour:
   m_Politeness: 0.1
   m_AdvantageThreshold: 0.2
   m_SafeBrakingDeceleration: 4
-  m_MinTimeBetweenLaneChanges: 2
+  m_MinTimeBetweenLaneChanges: 3
   m_VehicleColor: {r: 0, g: 1, b: 0.28909588, a: 1}
   m_VehicleWidth: 2
   m_AlwaysDrawGizmos: 1
@@ -4028,7 +4028,7 @@ MonoBehaviour:
   m_Politeness: 0.1
   m_AdvantageThreshold: 0.2
   m_SafeBrakingDeceleration: 4
-  m_MinTimeBetweenLaneChanges: 2
+  m_MinTimeBetweenLaneChanges: 3
   m_VehicleColor: {r: 1, g: 0, b: 0.25980568, a: 1}
   m_VehicleWidth: 2
   m_AlwaysDrawGizmos: 1
@@ -4490,7 +4490,7 @@ MonoBehaviour:
   m_Politeness: 0.1
   m_AdvantageThreshold: 0.2
   m_SafeBrakingDeceleration: 4
-  m_MinTimeBetweenLaneChanges: 2
+  m_MinTimeBetweenLaneChanges: 3
   m_VehicleColor: {r: 1, g: 0.49819285, b: 0, a: 1}
   m_VehicleWidth: 2
   m_AlwaysDrawGizmos: 1
