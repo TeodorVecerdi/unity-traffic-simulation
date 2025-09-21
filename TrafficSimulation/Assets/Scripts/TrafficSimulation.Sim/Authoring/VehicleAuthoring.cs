@@ -203,6 +203,13 @@ public sealed class VehicleAuthoring : MonoBehaviour {
     }
 
     private void DrawCarGizmos() {
+        if (Application.isPlaying) {
+            // If we're simulating, draw gizmos at the current position
+            DrawCarBox(transform.position, transform.forward, transform.right, m_Length, m_VehicleWidth, m_VehicleColor);
+            return;
+        }
+
+        // Otherwise, draw authored position
         if (m_Lane == null)
             return;
         if (m_InitialPosition < 0.0f || m_InitialPosition > m_Lane.Length)
