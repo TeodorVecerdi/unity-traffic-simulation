@@ -70,6 +70,11 @@ public struct MobilLaneChangeDecisionJob : IJobParallelFor {
 
     private void TryEvaluateTarget(int index, in VehicleState self, in IdmParameters selfIdm, in MobilParameters mobil, float oldSelfAcceleration, int targetLaneIndex, ref float bestIncentive, ref int bestTargetLane) {
         Hint.Assume(targetLaneIndex >= 0 && targetLaneIndex < Lanes.Length);
+
+        // FIXME: FindNeighborsAtPosition and FindNearestIncomingHazardsForTarget work on the assumption that the current
+        //        vehicle's lane has the same origin and length as the target lane. We should instead change this to map
+        //        the current position to the target lane's coordinate system, but this requires more extensive refactoring.
+
         var (laneLeaderIndex, laneFollowerIndex) = FindNeighborsAtPosition(targetLaneIndex, self.Position);
 
         // Consider vehicles currently merging into the target lane as provisional occupants.
