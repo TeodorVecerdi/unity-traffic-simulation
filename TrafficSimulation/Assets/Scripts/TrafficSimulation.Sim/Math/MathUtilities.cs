@@ -30,7 +30,7 @@ public static class MathUtilities {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float ComputeDistanceAlongLane(float fromPosition, float toPosition, float laneLength) {
         var deltaPosition = toPosition - fromPosition;
-        if (deltaPosition <= 0.0f)
+        if (deltaPosition < 0.0f)
             deltaPosition += laneLength;
         return deltaPosition;
     }
@@ -39,7 +39,7 @@ public static class MathUtilities {
     [BurstCompile]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float ComputeDistanceAlongLane(float deltaPosition, float laneLength) {
-        if (deltaPosition <= 0.0f)
+        if (deltaPosition < 0.0f)
             deltaPosition += laneLength;
         return deltaPosition;
     }
