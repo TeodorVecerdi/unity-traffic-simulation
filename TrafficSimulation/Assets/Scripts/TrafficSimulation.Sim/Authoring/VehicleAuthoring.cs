@@ -1,4 +1,8 @@
 ﻿using Sirenix.OdinInspector;
+using TrafficSimulation.Sim.Components;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace TrafficSimulation.Sim.Authoring;
 
@@ -43,6 +47,8 @@ public sealed class VehicleAuthoring : MonoBehaviour {
     [SerializeField] private Color m_VehicleColor = Color.cyan;
     [SerializeField] private float m_VehicleWidth = 2.0f;
     [SerializeField] private bool m_AlwaysDrawGizmos;
+
+    private VehicleState m_VehicleState;
 
     /// <summary>
     /// Represents the unique identifier assigned to a vehicle within the traffic simulation.
@@ -192,6 +198,16 @@ public sealed class VehicleAuthoring : MonoBehaviour {
         set => m_MinTimeBetweenLaneChanges = value;
     }
 
+    /// <summary>
+    /// Represents the current dynamic state of the vehicle within the traffic simulation, including
+    /// its position, speed, and acceleration. This property is essential for tracking the vehicle's
+    /// behavior and interactions with other vehicles and the environment.
+    /// </summary>
+    public VehicleState VehicleState {
+        get => m_VehicleState;
+        set => m_VehicleState = value;
+    }
+
     private void OnDrawGizmos() {
         if (!m_AlwaysDrawGizmos) return;
         DrawCarGizmos();
@@ -206,6 +222,7 @@ public sealed class VehicleAuthoring : MonoBehaviour {
         if (Application.isPlaying) {
             // If we're simulating, draw gizmos at the current position
             DrawCarBox(transform.position, transform.forward, transform.right, m_Length, m_VehicleWidth, m_VehicleColor);
+            DrawCarProperties();
             return;
         }
 
@@ -237,5 +254,13 @@ public sealed class VehicleAuthoring : MonoBehaviour {
 
         Gizmos.DrawLine(p2, p2 + forward * 0.5f);
         Gizmos.DrawLine(p3, p3 + forward * 0.5f);
+    }
+
+    private void DrawCarProperties() {
+#if UNITY_EDITOR
+        Handles.color = Color.white;
+        var label = $"ID: {m_VehicleId}\nLane: {m_VehicleState.LaneIndex}\ns: {m_VehicleState.Position:0.0} m\nv: {m_VehicleState.Speed:0.0} m/s\na: {m_VehicleState.Acceleration:0.0} m/s²";
+        Handles.Label(transform.position + Vector3.up * 2.0f, label);
+#endif
     }
 }

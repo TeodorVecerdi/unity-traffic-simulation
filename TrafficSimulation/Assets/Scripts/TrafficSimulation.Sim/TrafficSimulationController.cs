@@ -136,6 +136,7 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
             var position = laneTransform.position + laneTransform.forward * vehicleState.Position;
             var rotation = Quaternion.LookRotation(laneTransform.forward, Vector3.up);
             vehicleAuthoring.transform.SetPositionAndRotation(position, rotation);
+            vehicleAuthoring.VehicleState = vehicleState;
         }
     }
 
