@@ -4,7 +4,7 @@ public struct VehicleState(int vehicleId, int laneIndex, float position, float s
     /// <summary>
     /// Represents the unique managed identifier for a vehicle.
     /// </summary>
-    public int VehicleId = vehicleId;
+    public readonly int VehicleId = vehicleId;
 
     /// <summary>
     /// Represents the index of the lane in which the vehicle is currently positioned.
@@ -30,5 +30,5 @@ public struct VehicleState(int vehicleId, int laneIndex, float position, float s
     /// <summary>
     /// Represents the length of the vehicle in meters.
     /// </summary>
-    public float Length = length;
+    public readonly float Length = length;
 }
