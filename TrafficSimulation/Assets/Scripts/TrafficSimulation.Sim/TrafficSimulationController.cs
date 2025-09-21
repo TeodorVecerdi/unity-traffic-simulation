@@ -247,8 +247,10 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
         var integrateJob = new IntegrateVehicleStateJob {
             DeltaTime = timeStep,
             Vehicles = m_WorldState.Vehicles,
-            Lanes = m_WorldState.Lanes,
+            LaneChangeStates = m_WorldState.LaneChangeStates,
+            MobilParameters = m_WorldState.MobilParameters,
             Accelerations = m_WorldState.Accelerations,
+            Lanes = m_WorldState.Lanes,
         }.Schedule(m_WorldState.Vehicles.Length, 64, mobilJob);
 
         return integrateJob;
