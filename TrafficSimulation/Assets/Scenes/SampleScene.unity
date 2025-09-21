@@ -1332,6 +1332,68 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 8acc752a5945553488ce9473becc57af, type: 3}
   m_PrefabInstance: {fileID: 502949476}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &504762888
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 504762890}
+  - component: {fileID: 504762889}
+  m_Layer: 0
+  m_Name: Vehicle_9
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &504762889
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 504762888}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44c862237f934b998c9e372982eeea6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TrafficSimulation.Sim::TrafficSimulation.Sim.Authoring.VehicleAuthoring
+  m_VehicleId: 8
+  m_Lane: {fileID: 878900923}
+  m_Length: 4.5
+  m_InitialPosition: 30
+  m_InitialSpeed: 10
+  m_DesiredSpeed: 30
+  m_MaxAcceleration: 3
+  m_ComfortableBraking: 3
+  m_HeadwayTime: 1
+  m_MinGap: 0.5
+  m_AccelerationExponent: 4
+  m_Politeness: 0.1
+  m_AdvantageThreshold: 0.2
+  m_SafeBrakingDeceleration: 4
+  m_MinTimeBetweenLaneChanges: 2
+  m_VehicleColor: {r: 0.833622, g: 0, b: 1, a: 1}
+  m_VehicleWidth: 2
+  m_AlwaysDrawGizmos: 1
+--- !u!4 &504762890
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 504762888}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &512138377
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1980,7 +2042,7 @@ MonoBehaviour:
   m_Length: 230
   m_LeftLane: {fileID: 2123894895}
   m_RightLane: {fileID: 0}
-  m_SpeedLimit: 20
+  m_SpeedLimit: 30
   m_LaneGizmoColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   m_GizmoSize: 0.2
   m_DrawConnections: 1
@@ -4385,6 +4447,68 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4dfdfead3bfce2746b6709ca2c0af194, type: 3}
   m_PrefabInstance: {fileID: 2054067521}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2077432124
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2077432126}
+  - component: {fileID: 2077432125}
+  m_Layer: 0
+  m_Name: Vehicle_10
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2077432125
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2077432124}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44c862237f934b998c9e372982eeea6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TrafficSimulation.Sim::TrafficSimulation.Sim.Authoring.VehicleAuthoring
+  m_VehicleId: 9
+  m_Lane: {fileID: 878900923}
+  m_Length: 4.5
+  m_InitialPosition: 45.77
+  m_InitialSpeed: 10
+  m_DesiredSpeed: 30
+  m_MaxAcceleration: 3
+  m_ComfortableBraking: 3
+  m_HeadwayTime: 1
+  m_MinGap: 0.5
+  m_AccelerationExponent: 4
+  m_Politeness: 0.1
+  m_AdvantageThreshold: 0.2
+  m_SafeBrakingDeceleration: 4
+  m_MinTimeBetweenLaneChanges: 2
+  m_VehicleColor: {r: 1, g: 0.49819285, b: 0, a: 1}
+  m_VehicleWidth: 2
+  m_AlwaysDrawGizmos: 1
+--- !u!4 &2077432126
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2077432124}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &2082662073
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4559,5 +4683,7 @@ SceneRoots:
   - {fileID: 892480839}
   - {fileID: 307906292}
   - {fileID: 1568978750}
+  - {fileID: 504762890}
+  - {fileID: 2077432126}
   - {fileID: 1449083028}
   - {fileID: 1176212757}
