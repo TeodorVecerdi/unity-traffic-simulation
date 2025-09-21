@@ -199,6 +199,7 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
             Lanes = m_WorldState.Lanes,
             LaneRanges = m_WorldState.LaneRanges,
             Vehicles = m_WorldState.Vehicles,
+            IdmParameters = m_WorldState.IdmParameters,
         }.Schedule(safetyCheckJob);
 
         // Compute accelerations using IDM
