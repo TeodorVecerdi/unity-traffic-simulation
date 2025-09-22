@@ -219,6 +219,11 @@ public sealed class VehicleAuthoring : MonoBehaviour {
         set => m_LaneChangeState = value;
     }
 
+    public bool AlwaysDrawGizmos {
+        get => m_AlwaysDrawGizmos;
+        set => m_AlwaysDrawGizmos = value;
+    }
+
     private void OnDrawGizmos() {
         if (!m_AlwaysDrawGizmos) return;
         DrawCarGizmos();

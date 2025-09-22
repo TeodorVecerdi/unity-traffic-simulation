@@ -25,6 +25,11 @@ public sealed class TrafficLightGroupAuthoring : MonoBehaviour {
     // Runtime state fed from controller for visualization
     [NonSerialized] private float m_RuntimeTimeInCycleSeconds;
 
+    public bool DrawGizmos {
+        get => m_DrawGizmos;
+        set => m_DrawGizmos = value;
+    }
+
     public TrafficLightGroupParameters Parameters => new(
         m_GreenDurationSeconds,
         m_AmberDurationSeconds,

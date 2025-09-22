@@ -31,6 +31,11 @@ public sealed class LaneAuthoring : MonoBehaviour {
     public LaneAuthoring? RightLane => m_RightLane;
     public float SpeedLimit => m_SpeedLimit;
 
+    public bool AlwaysDrawGizmos {
+        get => m_AlwaysDrawGizmos;
+        set => m_AlwaysDrawGizmos = value;
+    }
+
     [Button]
     private void AssignLaneIds() {
 #if UNITY_EDITOR
