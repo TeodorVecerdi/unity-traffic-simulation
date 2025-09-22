@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using Sirenix.OdinInspector;
+﻿using Sirenix.OdinInspector;
 using TrafficSimulation.Roads.MeshGeneration.Data;
 using TrafficSimulation.Roads.MeshGeneration.Graph;
 using Unity.Burst;
@@ -13,7 +12,6 @@ namespace TrafficSimulation.Roads.MeshGeneration.Generators;
 public sealed class QuadGenerator : MeshGenerator {
     [SerializeField, MinValue(0.001f)] private float m_Width = 1.0f;
     [SerializeField, MinValue(0.001f)] private float m_Length = 1.0f;
-    [SerializeField] private bool m_Centered = true;
     [SerializeField] private Vector3 m_Normal = Vector3.up;
 
     public override void GetCounts(in MeshGenerationContext context, out int vertexCount, out int indexCount) {
@@ -25,9 +23,7 @@ public sealed class QuadGenerator : MeshGenerator {
         return new QuadFillJob {
             Width = m_Width,
             Length = m_Length,
-            Centered = m_Centered,
             Normal = m_Normal.normalized,
-            LocalToWorld = context.LocalToWorld,
             BufferSlice = bufferSlice,
         }.Schedule(dependency);
     }
@@ -36,10 +32,7 @@ public sealed class QuadGenerator : MeshGenerator {
     private struct QuadFillJob : IJob {
         public float Width;
         public float Length;
-        [MarshalAs(UnmanagedType.U1)]
-        public bool Centered;
         public float3 Normal;
-        public float4x4 LocalToWorld;
         public MeshBufferSlice BufferSlice;
 
         public void Execute() {
@@ -47,32 +40,31 @@ public sealed class QuadGenerator : MeshGenerator {
             var bitangent = math.cross(Normal, tangent);
 
             var halfSize = new float3(Width * 0.5f, 0, Length * 0.5f);
-            var offset = Centered ? float3.zero : new float3(0, 0, Length * 0.5f);
 
-            var v0 = -tangent * halfSize.x - bitangent * halfSize.z + offset;
-            var v1 = tangent * halfSize.x - bitangent * halfSize.z + offset;
-            var v2 = tangent * halfSize.x + bitangent * halfSize.z + offset;
-            var v3 = -tangent * halfSize.x + bitangent * halfSize.z + offset;
+            var v0 = -tangent * halfSize.x - bitangent * halfSize.z;
+            var v1 = tangent * halfSize.x - bitangent * halfSize.z;
+            var v2 = tangent * halfSize.x + bitangent * halfSize.z;
+            var v3 = -tangent * halfSize.x + bitangent * halfSize.z;
 
             var vertices = BufferSlice.GetVertices();
             vertices[0] = new MeshVertex {
-                Position = math.transform(LocalToWorld, v0),
-                Normal = math.mul((float3x3)LocalToWorld, Normal),
+                Position = v0,
+                Normal = Normal,
                 UV = new float2(0, 0),
             };
             vertices[1] = new MeshVertex {
-                Position = math.transform(LocalToWorld, v1),
-                Normal = math.mul((float3x3)LocalToWorld, Normal),
+                Position = v1,
+                Normal = Normal,
                 UV = new float2(1, 0),
             };
             vertices[2] = new MeshVertex {
-                Position = math.transform(LocalToWorld, v2),
-                Normal = math.mul((float3x3)LocalToWorld, Normal),
+                Position = v2,
+                Normal = Normal,
                 UV = new float2(1, 1),
             };
             vertices[3] = new MeshVertex {
-                Position = math.transform(LocalToWorld, v3),
-                Normal = math.mul((float3x3)LocalToWorld, Normal),
+                Position = v3,
+                Normal = Normal,
                 UV = new float2(0, 1),
             };
 
