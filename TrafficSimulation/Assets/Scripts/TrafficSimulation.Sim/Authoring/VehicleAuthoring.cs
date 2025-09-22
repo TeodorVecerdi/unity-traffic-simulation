@@ -1,7 +1,7 @@
 ﻿using Sirenix.OdinInspector;
 using TrafficSimulation.Sim.Components;
 using TrafficSimulation.Sim.Math;
-using Unity.Mathematics;
+using TrafficSimulation.Sim.Visualization;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -226,12 +226,23 @@ public sealed class VehicleAuthoring : MonoBehaviour {
 
     private void OnDrawGizmos() {
         if (!m_AlwaysDrawGizmos) return;
+        if (ShouldSkipVisualization()) return;
         DrawCarGizmos();
     }
 
     private void OnDrawGizmosSelected() {
         if (m_AlwaysDrawGizmos) return;
+        if (ShouldSkipVisualization()) return;
         DrawCarGizmos();
+    }
+
+    private static bool ShouldSkipVisualization() {
+        // Skip visualization if centralized visualizer is active during play mode
+        if (!Application.isPlaying)
+            return false;
+        if (SimulationVisualizer.InstanceExists && SimulationVisualizer.Instance.enabled)
+            return true;
+        return false;
     }
 
     private void DrawCarGizmos() {

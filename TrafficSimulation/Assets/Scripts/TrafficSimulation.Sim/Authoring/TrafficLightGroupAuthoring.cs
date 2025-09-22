@@ -1,6 +1,7 @@
 using Sirenix.OdinInspector;
 using TrafficSimulation.Sim.Components;
 using TrafficSimulation.Sim.Math;
+using TrafficSimulation.Sim.Visualization;
 
 namespace TrafficSimulation.Sim.Authoring;
 
@@ -47,6 +48,8 @@ public sealed class TrafficLightGroupAuthoring : MonoBehaviour {
     private void OnDrawGizmos() {
         if (!m_DrawGizmos)
             return;
+        if (ShouldSkipVisualization())
+            return;
 
         var parameters = Parameters;
         var color = Application.isPlaying
@@ -75,6 +78,15 @@ public sealed class TrafficLightGroupAuthoring : MonoBehaviour {
             Gizmos.DrawLine(stopBuffer - leftStop, stopBuffer + leftStop);
             Gizmos.DrawSphere(stopBuffer, m_GizmoSphereSize);
         }
+    }
+
+    private static bool ShouldSkipVisualization() {
+        // Skip visualization if centralized visualizer is active during play mode
+        if (!Application.isPlaying)
+            return false;
+        if (SimulationVisualizer.InstanceExists && SimulationVisualizer.Instance.enabled)
+            return true;
+        return false;
     }
 
     [Serializable]
