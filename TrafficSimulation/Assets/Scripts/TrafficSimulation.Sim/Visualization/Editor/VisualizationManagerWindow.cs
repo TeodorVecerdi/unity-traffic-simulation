@@ -124,20 +124,30 @@ public class VisualizationManagerWindow : EditorWindow {
 
             EditorGUILayout.EndHorizontal();
         } else {
+            var visualizers = new List<SimulationVisualizer>();
+            if (SimulationVisualizer.InstanceExists) {
+                visualizers.Add(SimulationVisualizer.Instance);
+            } else {
+                visualizers.AddRange(FindObjectsByType<SimulationVisualizer>(FindObjectsInactive.Include, FindObjectsSortMode.None));
+            }
+
             foreach (var settings in settingsAssets) {
                 if (settings == null) continue;
 
                 EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
 
+                var icon = visualizers.Any(visualizer => visualizer.Settings == settings) ? EditorGUIUtility.IconContent("TestPassed") : EditorGUIUtility.IconContent("TestFailed");
+                GUILayout.Label(icon, GUILayout.Width(20));
+
                 EditorGUILayout.ObjectField(settings, typeof(VisualizationSettings), false);
+
+                if (GUILayout.Button("Apply", GUILayout.Width(60))) {
+                    ApplySettingsToScene(settings);
+                }
 
                 if (GUILayout.Button("Select", GUILayout.Width(60))) {
                     Selection.activeObject = settings;
                     EditorGUIUtility.PingObject(settings);
-                }
-
-                if (GUILayout.Button("Apply to Scene", GUILayout.Width(100))) {
-                    ApplySettingsToScene(settings);
                 }
 
                 EditorGUILayout.EndHorizontal();
@@ -257,20 +267,15 @@ public class VisualizationManagerWindow : EditorWindow {
             visualizer.Settings = settings;
             EditorUtility.SetDirty(visualizer);
         }
-
-        EditorUtility.DisplayDialog("Success", $"Applied settings to {visualizers.Count} visualizer(s).", "OK");
     }
 
     private void SetAuthoringGizmosState(bool enabled) {
-        var count = 0;
-
         // Vehicles
         var vehicles = FindObjectsByType<VehicleAuthoring>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         foreach (var vehicle in vehicles) {
             Undo.RecordObject(vehicle, "Toggle Authoring Gizmos");
             vehicle.AlwaysDrawGizmos = enabled;
             EditorUtility.SetDirty(vehicle);
-            count++;
         }
 
         // Lanes
@@ -279,7 +284,6 @@ public class VisualizationManagerWindow : EditorWindow {
             Undo.RecordObject(lane, "Toggle Authoring Gizmos");
             lane.AlwaysDrawGizmos = enabled;
             EditorUtility.SetDirty(lane);
-            count++;
         }
 
         // Traffic Lights
@@ -288,10 +292,7 @@ public class VisualizationManagerWindow : EditorWindow {
             Undo.RecordObject(trafficLight, "Toggle Authoring Gizmos");
             trafficLight.DrawGizmos = enabled;
             EditorUtility.SetDirty(trafficLight);
-            count++;
         }
-
-        EditorUtility.DisplayDialog("Success", $"{(enabled ? "Enabled" : "Disabled")} gizmos for {count} authoring component(s).", "OK");
     }
 }
 #endif
