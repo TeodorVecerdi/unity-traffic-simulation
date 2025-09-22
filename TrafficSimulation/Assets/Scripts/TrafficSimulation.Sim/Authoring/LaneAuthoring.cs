@@ -51,7 +51,7 @@ public sealed class LaneAuthoring : MonoBehaviour {
 
     private void OnDrawGizmos() {
         if (!m_AlwaysDrawGizmos) return;
-        if (ShouldSkipVisualization()) return;
+        if (VisualizationUtils.ShouldSkipAuthoringVisualization()) return;
 #if UNITY_EDITOR
         DrawLaneGizmos(Selection.Contains(gameObject));
 #endif
@@ -59,17 +59,8 @@ public sealed class LaneAuthoring : MonoBehaviour {
 
     private void OnDrawGizmosSelected() {
         if (m_AlwaysDrawGizmos) return;
-        if (ShouldSkipVisualization()) return;
+        if (VisualizationUtils.ShouldSkipAuthoringVisualization()) return;
         DrawLaneGizmos(true);
-    }
-
-    private static bool ShouldSkipVisualization() {
-        // Skip visualization if centralized visualizer is active during play mode
-        if (!Application.isPlaying)
-            return false;
-        if (SimulationVisualizer.InstanceExists && SimulationVisualizer.Instance.enabled)
-            return true;
-        return false;
     }
 
     private void DrawLaneGizmos(bool selected) {

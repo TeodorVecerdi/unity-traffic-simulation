@@ -226,23 +226,14 @@ public sealed class VehicleAuthoring : MonoBehaviour {
 
     private void OnDrawGizmos() {
         if (!m_AlwaysDrawGizmos) return;
-        if (ShouldSkipVisualization()) return;
+        if (VisualizationUtils.ShouldSkipAuthoringVisualization()) return;
         DrawCarGizmos();
     }
 
     private void OnDrawGizmosSelected() {
         if (m_AlwaysDrawGizmos) return;
-        if (ShouldSkipVisualization()) return;
+        if (VisualizationUtils.ShouldSkipAuthoringVisualization()) return;
         DrawCarGizmos();
-    }
-
-    private static bool ShouldSkipVisualization() {
-        // Skip visualization if centralized visualizer is active during play mode
-        if (!Application.isPlaying)
-            return false;
-        if (SimulationVisualizer.InstanceExists && SimulationVisualizer.Instance.enabled)
-            return true;
-        return false;
     }
 
     private void DrawCarGizmos() {

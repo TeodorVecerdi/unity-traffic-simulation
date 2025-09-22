@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using TrafficSimulation.Sim.Authoring;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 
 namespace TrafficSimulation.Sim.Visualization.Editor;
 
@@ -10,7 +11,6 @@ namespace TrafficSimulation.Sim.Visualization.Editor;
 /// </summary>
 public class VisualizationManagerWindow : EditorWindow {
     private Vector2 m_ScrollPosition;
-    private VisualizationSettings? m_SelectedSettings;
     private bool m_ShowAuthoringComponents = true;
     private bool m_ShowVisualizationComponents = true;
     private bool m_ShowSettings = true;
@@ -48,14 +48,7 @@ public class VisualizationManagerWindow : EditorWindow {
 
         EditorGUI.indentLevel++;
 
-        // Use singleton instances where possible, fallback to FindObjectsByType for inactive objects
-        var visualizers = new List<SimulationVisualizer>();
-        if (SimulationVisualizer.InstanceExists) {
-            visualizers.Add(SimulationVisualizer.Instance);
-        } else {
-            visualizers.AddRange(FindObjectsByType<SimulationVisualizer>(FindObjectsInactive.Include, FindObjectsSortMode.None));
-        }
-
+        var visualizers = GetVisualizers();
         if (visualizers.Count == 0) {
             EditorGUILayout.HelpBox("No visualization components found in the scene.", MessageType.Info);
 
@@ -124,13 +117,7 @@ public class VisualizationManagerWindow : EditorWindow {
 
             EditorGUILayout.EndHorizontal();
         } else {
-            var visualizers = new List<SimulationVisualizer>();
-            if (SimulationVisualizer.InstanceExists) {
-                visualizers.Add(SimulationVisualizer.Instance);
-            } else {
-                visualizers.AddRange(FindObjectsByType<SimulationVisualizer>(FindObjectsInactive.Include, FindObjectsSortMode.None));
-            }
-
+            var visualizers = GetVisualizers();
             foreach (var settings in settingsAssets) {
                 if (settings == null) continue;
 
@@ -249,27 +236,29 @@ public class VisualizationManagerWindow : EditorWindow {
     }
 
     private void ApplySettingsToScene(VisualizationSettings settings) {
-        var visualizers = new List<SimulationVisualizer>();
-
-        if (SimulationVisualizer.InstanceExists) {
-            visualizers.Add(SimulationVisualizer.Instance);
-        } else {
-            visualizers.AddRange(FindObjectsByType<SimulationVisualizer>(FindObjectsInactive.Include, FindObjectsSortMode.None));
-        }
-
+        var visualizers = GetVisualizers();
         if (visualizers.Count == 0) {
             EditorUtility.DisplayDialog("Info", "No Simulation Visualizers found in the scene.", "OK");
             return;
         }
 
+        var undoGroup = Undo.GetCurrentGroup();
+        Undo.SetCurrentGroupName("Apply Visualization Settings");
         foreach (var visualizer in visualizers) {
             Undo.RecordObject(visualizer, "Apply Visualization Settings");
             visualizer.Settings = settings;
             EditorUtility.SetDirty(visualizer);
         }
+
+        Undo.CollapseUndoOperations(undoGroup);
+        if (!Application.isPlaying)
+            EditorSceneManager.MarkAllScenesDirty();
     }
 
     private void SetAuthoringGizmosState(bool enabled) {
+        var undoGroup = Undo.GetCurrentGroup();
+        Undo.SetCurrentGroupName(enabled ? "Enable Authoring Gizmos" : "Disable Authoring Gizmos");
+
         // Vehicles
         var vehicles = FindObjectsByType<VehicleAuthoring>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         foreach (var vehicle in vehicles) {
@@ -293,6 +282,21 @@ public class VisualizationManagerWindow : EditorWindow {
             trafficLight.DrawGizmos = enabled;
             EditorUtility.SetDirty(trafficLight);
         }
+
+        Undo.CollapseUndoOperations(undoGroup);
+        if (!Application.isPlaying)
+            EditorSceneManager.MarkAllScenesDirty();
+    }
+
+    private static List<SimulationVisualizer> GetVisualizers() {
+        var visualizers = new List<SimulationVisualizer>();
+        if (SimulationVisualizer.InstanceExists) {
+            visualizers.Add(SimulationVisualizer.Instance);
+        } else {
+            visualizers.AddRange(FindObjectsByType<SimulationVisualizer>(FindObjectsInactive.Include, FindObjectsSortMode.None));
+        }
+
+        return visualizers;
     }
 }
 #endif
