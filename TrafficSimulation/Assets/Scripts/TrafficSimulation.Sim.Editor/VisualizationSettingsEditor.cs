@@ -1,8 +1,9 @@
-#if UNITY_EDITOR
 using Sirenix.OdinInspector.Editor;
+using TrafficSimulation.Sim.Visualization;
 using UnityEditor;
+using UnityEngine;
 
-namespace TrafficSimulation.Sim.Visualization.Editor;
+namespace TrafficSimulation.Sim.Editor;
 
 [CustomEditor(typeof(VisualizationSettings))]
 public sealed class VisualizationSettingsEditor : OdinEditor {
@@ -201,4 +202,3 @@ public sealed class VisualizationSettingsEditor : OdinEditor {
         return features.ToArray();
     }
 }
-#endif

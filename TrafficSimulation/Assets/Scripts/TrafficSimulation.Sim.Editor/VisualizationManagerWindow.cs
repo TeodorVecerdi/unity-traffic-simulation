@@ -1,15 +1,12 @@
-#if UNITY_EDITOR
 using TrafficSimulation.Sim.Authoring;
+using TrafficSimulation.Sim.Visualization;
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using UnityEngine;
 
-namespace TrafficSimulation.Sim.Visualization.Editor;
+namespace TrafficSimulation.Sim.Editor;
 
-/// <summary>
-/// Editor window for managing simulation visualization across the project.
-/// Provides centralized control over visualization settings and components.
-/// </summary>
-public class VisualizationManagerWindow : EditorWindow {
+public sealed class VisualizationManagerWindow : EditorWindow {
     private Vector2 m_ScrollPosition;
     private bool m_ShowAuthoringComponents = true;
     private bool m_ShowVisualizationComponents = true;
@@ -299,4 +296,3 @@ public class VisualizationManagerWindow : EditorWindow {
         return visualizers;
     }
 }
-#endif
