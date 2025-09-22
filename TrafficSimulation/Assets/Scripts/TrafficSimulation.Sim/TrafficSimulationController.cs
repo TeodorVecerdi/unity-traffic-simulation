@@ -29,6 +29,8 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
     private TrafficLightGroupAuthoring[]? m_TrafficLightGroups;
     private WorldState? m_WorldState;
 
+    public WorldState? WorldState => m_WorldState;
+
     private void Start() {
         SetupWorldState();
     }
@@ -122,7 +124,7 @@ public sealed class TrafficSimulationController : BaseMonoBehaviour {
             vehicleStates[i] = new VehicleState(vehicle.VehicleId, laneIdToIndex[vehicle.Lane.LaneId], position, speed, 0.0f, vehicle.Length);
             idmParameters[i] = new IdmParameters(vehicle.DesiredSpeed, vehicle.MaxAcceleration, vehicle.ComfortableBraking, vehicle.HeadwayTime, vehicle.MinGap, vehicle.AccelerationExponent);
             mobilParameters[i] = new MobilParameters(vehicle.Politeness, vehicle.AdvantageThreshold, vehicle.SafeBrakingDeceleration, vehicle.MinTimeBetweenLaneChanges);
-            laneChangeStates[i] = new LaneChangeState() { Cooldown = Rand.Range(0.0f, mobilParameters[i].MinTimeBetweenLaneChanges) };
+            laneChangeStates[i] = new LaneChangeState { Cooldown = Rand.Range(0.0f, mobilParameters[i].MinTimeBetweenLaneChanges) };
             accelerations[i] = 0.0f;
         }
 
