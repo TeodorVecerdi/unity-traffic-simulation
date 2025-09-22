@@ -1,0 +1,25 @@
+{
+    "name": "TrafficSimulation.Roads",
+    "rootNamespace": "",
+    "references": [
+        "TrafficSimulation.Core",
+        "LitMotion",
+        "LitMotion.Extensions",
+        "UniTask",
+        "Vecerdi.Extensions.Logging",
+        "Vecerdi.Extensions.DependencyInjection",
+        "Unity.Burst",
+        "Unity.Collections",
+        "Unity.Mathematics",
+        "Unity.Splines"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
