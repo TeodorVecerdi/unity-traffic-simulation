@@ -1,6 +1,7 @@
 using Sirenix.OdinInspector;
 using TrafficSimulation.Sim.Components;
 using TrafficSimulation.Sim.Math;
+using TrafficSimulation.Sim.Visualization;
 
 namespace TrafficSimulation.Sim.Authoring;
 
@@ -25,6 +26,11 @@ public sealed class TrafficLightGroupAuthoring : MonoBehaviour {
     // Runtime state fed from controller for visualization
     [NonSerialized] private float m_RuntimeTimeInCycleSeconds;
 
+    public bool DrawGizmos {
+        get => m_DrawGizmos;
+        set => m_DrawGizmos = value;
+    }
+
     public TrafficLightGroupParameters Parameters => new(
         m_GreenDurationSeconds,
         m_AmberDurationSeconds,
@@ -41,6 +47,8 @@ public sealed class TrafficLightGroupAuthoring : MonoBehaviour {
 
     private void OnDrawGizmos() {
         if (!m_DrawGizmos)
+            return;
+        if (VisualizationUtils.ShouldSkipAuthoringVisualization())
             return;
 
         var parameters = Parameters;

@@ -1,4 +1,5 @@
 ﻿using Sirenix.OdinInspector;
+using TrafficSimulation.Sim.Visualization;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -31,6 +32,11 @@ public sealed class LaneAuthoring : MonoBehaviour {
     public LaneAuthoring? RightLane => m_RightLane;
     public float SpeedLimit => m_SpeedLimit;
 
+    public bool AlwaysDrawGizmos {
+        get => m_AlwaysDrawGizmos;
+        set => m_AlwaysDrawGizmos = value;
+    }
+
     [Button]
     private void AssignLaneIds() {
 #if UNITY_EDITOR
@@ -45,6 +51,7 @@ public sealed class LaneAuthoring : MonoBehaviour {
 
     private void OnDrawGizmos() {
         if (!m_AlwaysDrawGizmos) return;
+        if (VisualizationUtils.ShouldSkipAuthoringVisualization()) return;
 #if UNITY_EDITOR
         DrawLaneGizmos(Selection.Contains(gameObject));
 #endif
@@ -52,6 +59,7 @@ public sealed class LaneAuthoring : MonoBehaviour {
 
     private void OnDrawGizmosSelected() {
         if (m_AlwaysDrawGizmos) return;
+        if (VisualizationUtils.ShouldSkipAuthoringVisualization()) return;
         DrawLaneGizmos(true);
     }
 

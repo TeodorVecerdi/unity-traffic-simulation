@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6afafd5a90988c4a9b880a7f8569ef9, type: 3}
+  m_Name: DefaultVisualizationSettings
+  m_EditorClassIdentifier: TrafficSimulation.Sim::TrafficSimulation.Sim.Visualization.VisualizationSettings
+  ShowVehicles: 1
+  ShowVehicleLabels: 1
+  ShowVelocityVectors: 1
+  ShowAccelerationVectors: 1
+  ShowVehicleGaps: 1
+  ShowLaneChangeTrajectories: 1
+  ShowSpeedComparison: 0
+  ShowBehaviorStates: 1
+  VehicleWidth: 2
+  VehicleBodyColor: {r: 0.2, g: 0.6, b: 1, a: 0.8}
+  VehicleBorderColor: {r: 1, g: 1, b: 1, a: 1}
+  VelocityVectorScale: 0.3
+  AccelerationVectorScale: 2
+  ShowLanes: 1
+  ShowLaneLabels: 0
+  ShowLaneConnections: 0
+  ShowTrafficDensity: 0
+  LaneColor: {r: 1, g: 1, b: 0, a: 0.3}
+  LaneConnectionColor: {r: 0, g: 1, b: 1, a: 0.5}
+  ShowTrafficLights: 1
+  ShowStopLines: 1
+  ShowLightTimings: 0
+  StopLineWidth: 3
+  OnlyShowSelectedVehicleDetails: 0
+  MaxDetailDistance: 0
+  EnableLevelOfDetail: 0
+  VelocityColor: {r: 0, g: 1, b: 0, a: 1}
+  AccelerationPositiveColor: {r: 0, g: 1, b: 0, a: 1}
+  AccelerationNegativeColor: {r: 1, g: 0, b: 0, a: 1}
+  GapLineColor: {r: 1, g: 1, b: 0, a: 0.6}
+  LaneChangeColor: {r: 1, g: 0, b: 1, a: 0.8}
+  ShowVehicleSensors: 0
+  ShowFlowMetrics: 0
+  ShowBottlenecks: 0
+  ShowVehicleTrails: 0
+  TrailLengthSeconds: 5

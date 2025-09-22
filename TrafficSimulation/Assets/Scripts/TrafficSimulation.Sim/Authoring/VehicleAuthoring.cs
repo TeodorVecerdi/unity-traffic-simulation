@@ -1,7 +1,7 @@
 ﻿using Sirenix.OdinInspector;
 using TrafficSimulation.Sim.Components;
 using TrafficSimulation.Sim.Math;
-using Unity.Mathematics;
+using TrafficSimulation.Sim.Visualization;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -219,13 +219,20 @@ public sealed class VehicleAuthoring : MonoBehaviour {
         set => m_LaneChangeState = value;
     }
 
+    public bool AlwaysDrawGizmos {
+        get => m_AlwaysDrawGizmos;
+        set => m_AlwaysDrawGizmos = value;
+    }
+
     private void OnDrawGizmos() {
         if (!m_AlwaysDrawGizmos) return;
+        if (VisualizationUtils.ShouldSkipAuthoringVisualization()) return;
         DrawCarGizmos();
     }
 
     private void OnDrawGizmosSelected() {
         if (m_AlwaysDrawGizmos) return;
+        if (VisualizationUtils.ShouldSkipAuthoringVisualization()) return;
         DrawCarGizmos();
     }
 
