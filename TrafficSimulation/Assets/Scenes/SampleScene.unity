@@ -2675,7 +2675,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b33267f085a0dbb4884b05ecc5bb131b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: TrafficSimulation.Sim::TrafficSimulation.Sim.Visualization.SimulationVisualizer
-  m_Settings: {fileID: 11400000, guid: 84aee59ff470fe94b99a54c7ac18d7ef, type: 2}
+  m_Settings: {fileID: 11400000, guid: a3fb66bd97bd4664393740259868498f, type: 2}
   m_ShowDebugInfo: 1
   m_ShowPerformanceMetrics: 1
   m_ShowMemoryUsage: 1
