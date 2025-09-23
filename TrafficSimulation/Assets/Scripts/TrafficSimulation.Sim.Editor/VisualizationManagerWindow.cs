@@ -1,25 +1,78 @@
-#if UNITY_EDITOR
 using TrafficSimulation.Sim.Authoring;
+using TrafficSimulation.Sim.Visualization;
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
-namespace TrafficSimulation.Sim.Visualization.Editor;
+namespace TrafficSimulation.Sim.Editor;
 
-/// <summary>
-/// Editor window for managing simulation visualization across the project.
-/// Provides centralized control over visualization settings and components.
-/// </summary>
-public class VisualizationManagerWindow : EditorWindow {
+public sealed class VisualizationManagerWindow : EditorWindow {
     private Vector2 m_ScrollPosition;
     private bool m_ShowAuthoringComponents = true;
     private bool m_ShowVisualizationComponents = true;
     private bool m_ShowSettings = true;
+
+    // Cached references to avoid FindObjectsByType on every repaint
+    private List<SimulationVisualizer> m_CachedVisualizers = [];
+    private VehicleAuthoring[] m_CachedVehicles = [];
+    private LaneAuthoring[] m_CachedLanes = [];
+    private TrafficLightGroupAuthoring[] m_CachedTrafficLights = [];
 
     [MenuItem("Traffic Simulation/Visualization Manager")]
     public static void ShowWindow() {
         var window = GetWindow<VisualizationManagerWindow>("Visualization Manager");
         window.minSize = new Vector2(400, 500);
         window.Show();
+    }
+
+    private void OnEnable() {
+        // Populate caches initially
+        RefreshCaches();
+
+        // Subscribe to editor events to keep caches up-to-date without querying every repaint
+        EditorApplication.hierarchyChanged += OnHierarchyOrSceneChanged;
+        EditorSceneManager.sceneOpened += OnSceneOpened;
+        EditorSceneManager.sceneClosed += OnSceneClosed;
+        EditorSceneManager.sceneDirtied += OnSceneDirtied;
+        Undo.undoRedoPerformed += OnUndoRedoPerformed;
+        EditorApplication.playModeStateChanged += OnPlayModeChanged;
+    }
+
+    private void OnDisable() {
+        // Unsubscribe to avoid leaks
+        EditorApplication.hierarchyChanged -= OnHierarchyOrSceneChanged;
+        EditorSceneManager.sceneOpened -= OnSceneOpened;
+        EditorSceneManager.sceneClosed -= OnSceneClosed;
+        EditorSceneManager.sceneDirtied -= OnSceneDirtied;
+        Undo.undoRedoPerformed -= OnUndoRedoPerformed;
+        EditorApplication.playModeStateChanged -= OnPlayModeChanged;
+    }
+
+    private void OnHierarchyOrSceneChanged() {
+        RefreshCaches();
+        Repaint();
+    }
+
+    private void OnSceneOpened(Scene scene, OpenSceneMode mode) => OnHierarchyOrSceneChanged();
+    private void OnSceneClosed(Scene scene) => OnHierarchyOrSceneChanged();
+    private void OnSceneDirtied(Scene scene) => Repaint();
+    private void OnUndoRedoPerformed() => OnHierarchyOrSceneChanged();
+    private void OnPlayModeChanged(PlayModeStateChange state) => OnHierarchyOrSceneChanged();
+
+    private void RefreshCaches() {
+        // Visualizers: prefer singleton instance if exists, else search once
+        m_CachedVisualizers.Clear();
+        if (SimulationVisualizer.InstanceExists) {
+            m_CachedVisualizers.Add(SimulationVisualizer.Instance);
+        } else {
+            m_CachedVisualizers.AddRange(FindObjectsByType<SimulationVisualizer>(FindObjectsInactive.Include, FindObjectsSortMode.None));
+        }
+
+        // Authoring components
+        m_CachedVehicles = FindObjectsByType<VehicleAuthoring>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        m_CachedLanes = FindObjectsByType<LaneAuthoring>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        m_CachedTrafficLights = FindObjectsByType<TrafficLightGroupAuthoring>(FindObjectsInactive.Include, FindObjectsSortMode.None);
     }
 
     private void OnGUI() {
@@ -60,6 +113,7 @@ public class VisualizationManagerWindow : EditorWindow {
                 GUILayout.Label($"Visualizers ({visualizers.Count})", EditorStyles.boldLabel);
 
                 foreach (var visualizer in visualizers) {
+                    if (visualizer == null) continue;
                     EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
 
                     var icon = visualizer.enabled ? EditorGUIUtility.IconContent("TestPassed") : EditorGUIUtility.IconContent("TestFailed");
@@ -123,7 +177,7 @@ public class VisualizationManagerWindow : EditorWindow {
 
                 EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
 
-                var icon = visualizers.Any(visualizer => visualizer.Settings == settings) ? EditorGUIUtility.IconContent("TestPassed") : EditorGUIUtility.IconContent("TestFailed");
+                var icon = visualizers.Any(visualizer => visualizer != null && visualizer.Settings == settings) ? EditorGUIUtility.IconContent("TestPassed") : EditorGUIUtility.IconContent("TestFailed");
                 GUILayout.Label(icon, GUILayout.Width(20));
 
                 EditorGUILayout.ObjectField(settings, typeof(VisualizationSettings), false);
@@ -150,9 +204,10 @@ public class VisualizationManagerWindow : EditorWindow {
 
         EditorGUI.indentLevel++;
 
-        var vehicles = FindObjectsByType<VehicleAuthoring>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        var lanes = FindObjectsByType<LaneAuthoring>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        var trafficLights = FindObjectsByType<TrafficLightGroupAuthoring>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        // Use cached arrays to avoid per-repaint queries
+        var vehicles = m_CachedVehicles;
+        var lanes = m_CachedLanes;
+        var trafficLights = m_CachedTrafficLights;
 
         GUILayout.Label("Scene Components:", EditorStyles.boldLabel);
         EditorGUILayout.LabelField($"• Vehicles: {vehicles.Length}");
@@ -184,6 +239,7 @@ public class VisualizationManagerWindow : EditorWindow {
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 
         if (GUILayout.Button("Refresh Scene Analysis")) {
+            RefreshCaches();
             Repaint();
         }
 
@@ -219,6 +275,8 @@ public class VisualizationManagerWindow : EditorWindow {
             EditorUtility.SetDirty(visualizer);
         }
 
+        // Update cache and UI
+        RefreshCaches();
         Selection.activeObject = visualizer;
         EditorGUIUtility.PingObject(visualizer);
     }
@@ -245,6 +303,7 @@ public class VisualizationManagerWindow : EditorWindow {
         var undoGroup = Undo.GetCurrentGroup();
         Undo.SetCurrentGroupName("Apply Visualization Settings");
         foreach (var visualizer in visualizers) {
+            if (visualizer == null) continue;
             Undo.RecordObject(visualizer, "Apply Visualization Settings");
             visualizer.Settings = settings;
             EditorUtility.SetDirty(visualizer);
@@ -253,6 +312,9 @@ public class VisualizationManagerWindow : EditorWindow {
         Undo.CollapseUndoOperations(undoGroup);
         if (!Application.isPlaying)
             EditorSceneManager.MarkAllScenesDirty();
+
+        RefreshCaches();
+        Repaint();
     }
 
     private void SetAuthoringGizmosState(bool enabled) {
@@ -286,17 +348,15 @@ public class VisualizationManagerWindow : EditorWindow {
         Undo.CollapseUndoOperations(undoGroup);
         if (!Application.isPlaying)
             EditorSceneManager.MarkAllScenesDirty();
+
+        RefreshCaches();
+        Repaint();
     }
 
-    private static List<SimulationVisualizer> GetVisualizers() {
-        var visualizers = new List<SimulationVisualizer>();
-        if (SimulationVisualizer.InstanceExists) {
-            visualizers.Add(SimulationVisualizer.Instance);
-        } else {
-            visualizers.AddRange(FindObjectsByType<SimulationVisualizer>(FindObjectsInactive.Include, FindObjectsSortMode.None));
-        }
-
-        return visualizers;
+    private List<SimulationVisualizer> GetVisualizers() {
+        // Ensure cache is initialized
+        if (m_CachedVisualizers == null!)
+            m_CachedVisualizers = [];
+        return m_CachedVisualizers;
     }
 }
-#endif
