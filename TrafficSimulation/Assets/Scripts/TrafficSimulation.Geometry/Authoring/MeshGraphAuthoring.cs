@@ -98,6 +98,11 @@ public sealed class MeshGraphAuthoring : MonoBehaviour {
 
     private void ApplyResult(Mesh mesh, Material[] materials) {
         if (m_MeshFilter != null) {
+            var oldMesh = m_MeshFilter.sharedMesh;
+            if (oldMesh != null && oldMesh != mesh) {
+                oldMesh.DestroyObject();
+            }
+
             m_MeshFilter.sharedMesh = mesh;
         }
 
