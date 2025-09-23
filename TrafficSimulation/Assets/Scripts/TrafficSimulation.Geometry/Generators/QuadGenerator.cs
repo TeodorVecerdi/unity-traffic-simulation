@@ -1,6 +1,7 @@
 ﻿using Sirenix.OdinInspector;
 using TrafficSimulation.Geometry.Data;
 using TrafficSimulation.Geometry.Graph;
+using TrafficSimulation.Geometry.Helpers;
 using Unity.Burst;
 using Unity.Jobs;
 using Unity.Mathematics;
@@ -36,45 +37,26 @@ public sealed class QuadGenerator : MeshGenerator {
         public MeshBufferSlice BufferSlice;
 
         public void Execute() {
-            var tangent = math.normalize(math.cross(Normal, math.abs(Normal.y) < 0.99f ? new float3(0, 1, 0) : new float3(1, 0, 0)));
+            var tangent = math.normalize(math.cross(Normal, math.abs(Normal.y) < 0.99f ? new float3(0.0f, 1.0f, 0.0f) : new float3(1.0f, 0.0f, 0.0f)));
             var bitangent = math.cross(Normal, tangent);
 
-            var halfSize = new float3(Width * 0.5f, 0, Length * 0.5f);
+            var halfSize = new float3(Width * 0.5f, 0.0f, Length * 0.5f);
 
             var v0 = -tangent * halfSize.x - bitangent * halfSize.z;
             var v1 = tangent * halfSize.x - bitangent * halfSize.z;
             var v2 = tangent * halfSize.x + bitangent * halfSize.z;
             var v3 = -tangent * halfSize.x + bitangent * halfSize.z;
 
-            var vertices = BufferSlice.GetVertices();
-            vertices[0] = new MeshVertex {
-                Position = v0,
-                Normal = Normal,
-                UV = new float2(0, 0),
-            };
-            vertices[1] = new MeshVertex {
-                Position = v1,
-                Normal = Normal,
-                UV = new float2(1, 0),
-            };
-            vertices[2] = new MeshVertex {
-                Position = v2,
-                Normal = Normal,
-                UV = new float2(1, 1),
-            };
-            vertices[3] = new MeshVertex {
-                Position = v3,
-                Normal = Normal,
-                UV = new float2(0, 1),
-            };
+            var vertex0 = new MeshVertex { Position = v0, Normal = Normal, UV = new float2(0.0f, 0.0f) };
+            var vertex1 = new MeshVertex { Position = v1, Normal = Normal, UV = new float2(1.0f, 0.0f) };
+            var vertex2 = new MeshVertex { Position = v2, Normal = Normal, UV = new float2(1.0f, 1.0f) };
+            var vertex3 = new MeshVertex { Position = v3, Normal = Normal, UV = new float2(0.0f, 1.0f) };
 
+            var vertices = BufferSlice.GetVertices();
             var indices = BufferSlice.GetIndices();
-            indices[0] = 0;
-            indices[1] = 1;
-            indices[2] = 2;
-            indices[3] = 2;
-            indices[4] = 3;
-            indices[5] = 0;
+            var vertexOffset = 0;
+            var indexOffset = 0;
+            MeshWrite.WriteQuad(vertex0, vertex1, vertex2, vertex3, ref vertices, ref indices, ref vertexOffset, ref indexOffset);
         }
     }
 }
