@@ -1,12 +1,12 @@
 ﻿using Sirenix.OdinInspector;
-using TrafficSimulation.Roads.MeshGeneration.Data;
-using TrafficSimulation.Roads.MeshGeneration.Graph;
+using TrafficSimulation.Geometry.MeshGeneration.Data;
+using TrafficSimulation.Geometry.MeshGeneration.Graph;
 using Unity.Burst;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace TrafficSimulation.Roads.MeshGeneration.Generators;
+namespace TrafficSimulation.Geometry.MeshGeneration.Generators;
 
 [Serializable]
 public sealed class QuadGenerator : MeshGenerator {

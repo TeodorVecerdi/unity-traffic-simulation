@@ -2,7 +2,7 @@
 using Unity.Collections;
 using UnityEngine;
 
-namespace TrafficSimulation.Roads.MeshGeneration.Data;
+namespace TrafficSimulation.Geometry.MeshGeneration.Data;
 
 public struct MeshBufferSlice(Mesh.MeshData meshData, int vertexStart, int vertexCount, int indexStart, int indexCount) {
     private Mesh.MeshData m_MeshData = meshData;

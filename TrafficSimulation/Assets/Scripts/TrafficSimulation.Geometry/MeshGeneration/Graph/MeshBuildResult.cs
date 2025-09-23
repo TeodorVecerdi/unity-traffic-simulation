@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace TrafficSimulation.Roads.MeshGeneration.Graph;
+namespace TrafficSimulation.Geometry.MeshGeneration.Graph;
 
 public readonly struct MeshBuildResult(Mesh mesh, Material[] materials) {
     public readonly Mesh Mesh = mesh;

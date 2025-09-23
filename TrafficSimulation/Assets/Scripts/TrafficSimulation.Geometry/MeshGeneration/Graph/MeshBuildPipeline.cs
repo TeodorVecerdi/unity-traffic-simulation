@@ -1,12 +1,12 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using TrafficSimulation.Roads.MeshGeneration.Data;
+using TrafficSimulation.Geometry.MeshGeneration.Data;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace TrafficSimulation.Roads.MeshGeneration.Graph;
+namespace TrafficSimulation.Geometry.MeshGeneration.Graph;
 
 public static class MeshBuildPipeline {
     [SuppressMessage("ReSharper", "RedundantArgumentDefaultValue")]

@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using Unity.Mathematics;
 
-namespace TrafficSimulation.Roads.MeshGeneration.Data;
+namespace TrafficSimulation.Geometry.MeshGeneration.Data;
 
 [StructLayout(LayoutKind.Sequential)]
 public struct MeshVertex {

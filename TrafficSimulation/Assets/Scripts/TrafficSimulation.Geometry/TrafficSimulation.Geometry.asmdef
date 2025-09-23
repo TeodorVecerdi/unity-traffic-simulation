@@ -1,5 +1,5 @@
 {
-    "name": "TrafficSimulation.Roads",
+    "name": "TrafficSimulation.Geometry",
     "rootNamespace": "",
     "references": [
         "TrafficSimulation.Core",

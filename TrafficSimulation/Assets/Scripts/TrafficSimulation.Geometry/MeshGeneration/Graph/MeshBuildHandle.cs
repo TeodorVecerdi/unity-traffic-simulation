@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace TrafficSimulation.Roads.MeshGeneration.Graph;
+namespace TrafficSimulation.Geometry.MeshGeneration.Graph;
 
 public struct MeshBuildHandle(JobHandle jobHandle, Mesh.MeshDataArray meshData, Mesh mesh, Material[] materials, SubMeshDescriptor[] subMeshes) {
     public JobHandle JobHandle { get; } = jobHandle;

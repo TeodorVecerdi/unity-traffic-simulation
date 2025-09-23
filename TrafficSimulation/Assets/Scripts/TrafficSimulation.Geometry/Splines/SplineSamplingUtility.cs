@@ -1,7 +1,7 @@
 ﻿using Unity.Mathematics;
 using UnityEngine.Splines;
 
-namespace TrafficSimulation.Roads.Splines;
+namespace TrafficSimulation.Geometry.Splines;
 
 public static class SplineSamplingUtility {
     public static void AdaptiveSample(Spline spline, List<float> results, float maxError = 0.05f, float maxStep = 2.0f) {

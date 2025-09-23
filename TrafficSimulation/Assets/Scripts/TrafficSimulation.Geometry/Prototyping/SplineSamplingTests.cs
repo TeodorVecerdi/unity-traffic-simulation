@@ -1,10 +1,10 @@
 ﻿using Sirenix.OdinInspector;
-using TrafficSimulation.Roads.Splines;
+using TrafficSimulation.Geometry.Splines;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Splines;
 
-namespace TrafficSimulation.Roads.Prototyping;
+namespace TrafficSimulation.Geometry.Prototyping;
 
 public sealed class SplineSamplingTests : MonoBehaviour {
     [SerializeField, Required] private SplineContainer m_SplineContainer = null!;

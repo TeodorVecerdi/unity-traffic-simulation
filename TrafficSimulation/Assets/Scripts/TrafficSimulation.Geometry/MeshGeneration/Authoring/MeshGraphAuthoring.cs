@@ -1,9 +1,9 @@
 ﻿using Sirenix.OdinInspector;
-using TrafficSimulation.Roads.MeshGeneration.Data;
-using TrafficSimulation.Roads.MeshGeneration.Graph;
+using TrafficSimulation.Geometry.MeshGeneration.Data;
+using TrafficSimulation.Geometry.MeshGeneration.Graph;
 using UnityEngine;
 
-namespace TrafficSimulation.Roads.MeshGeneration.Authoring;
+namespace TrafficSimulation.Geometry.MeshGeneration.Authoring;
 
 [ExecuteAlways, DisallowMultipleComponent]
 public sealed class MeshGraphAuthoring : MonoBehaviour {
