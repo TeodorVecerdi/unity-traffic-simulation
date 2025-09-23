@@ -16,7 +16,7 @@ public static class GeometryUtils {
         var a = math.abs(v.y) < 0.99f ? new float3(0.0f, 1.0f, 0.0f) : new float3(1.0f, 0.0f, 0.0f);
         var p = math.cross(v, a);
         var len = math.length(p);
-        result = len > Epsilon ? p / len : new float3(0.0f, 0.0f, 0.0f);
+        result = len > Epsilon ? p / len : new float3(1.0f, 0.0f, 0.0f);
     }
 
     [BurstCompile]
