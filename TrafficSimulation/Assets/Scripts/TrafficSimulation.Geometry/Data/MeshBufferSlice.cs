@@ -13,7 +13,7 @@ public struct MeshBufferSlice(Mesh.MeshData meshData, int vertexStart, int verte
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public NativeArray<uint> GetIndices() {
-        return m_MeshData.GetIndexData<uint>().GetSubArray(indexStart, indexCount);
+    public NativeArray<int> GetIndices() {
+        return m_MeshData.GetIndexData<int>().GetSubArray(indexStart, indexCount);
     }
 }
