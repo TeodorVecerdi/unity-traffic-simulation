@@ -47,7 +47,7 @@ public sealed class MeshGraphAuthoring : MonoBehaviour {
             if (m_HasScheduled) {
                 // If there's an existing job, complete it first to dispose resources properly
                 var mesh = m_Handle.GetResult().Mesh;
-                DestroyImmediate(mesh);
+                mesh.DestroyObject();
                 m_Handle = default;
             }
 
