@@ -25,8 +25,8 @@ public static class Triangulation {
         }
 
         var guard = 0;
-        while (verts.Length > 3 && guard < 10000) {
-            guard++;
+        var maxIterations = n * n;
+        while (verts.Length > 3 && guard++ < maxIterations) {
             var earFound = false;
 
             for (var i = 0; i < verts.Length; i++) {
@@ -42,7 +42,7 @@ public static class Triangulation {
                 var ab = b - a;
                 var bc = c - b;
                 var z = ab.x * bc.y - ab.y * bc.x;
-                if (z <= 0.0f)
+                if (z <= GeometryUtils.Epsilon)
                     continue;
 
                 var contains = false;
