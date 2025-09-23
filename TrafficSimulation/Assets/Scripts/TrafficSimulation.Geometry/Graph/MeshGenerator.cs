@@ -1,7 +1,7 @@
-﻿using TrafficSimulation.Geometry.MeshGeneration.Data;
+﻿using TrafficSimulation.Geometry.Data;
 using Unity.Jobs;
 
-namespace TrafficSimulation.Geometry.MeshGeneration.Graph;
+namespace TrafficSimulation.Geometry.Graph;
 
 public abstract class MeshGenerator {
     public abstract void GetCounts(in MeshGenerationContext context, out int vertexCount, out int indexCount);

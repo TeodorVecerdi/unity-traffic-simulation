@@ -1,7 +1,7 @@
 ﻿using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace TrafficSimulation.Geometry.MeshGeneration.Graph;
+namespace TrafficSimulation.Geometry.Graph;
 
 [Serializable]
 public sealed class MeshGraph {
