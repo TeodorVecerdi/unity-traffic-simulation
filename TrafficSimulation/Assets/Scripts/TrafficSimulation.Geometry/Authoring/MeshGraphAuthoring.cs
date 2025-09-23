@@ -62,7 +62,7 @@ public sealed class MeshGraphAuthoring : MonoBehaviour {
             m_MeshFilter.sharedMesh = null;
         }
 
-        if (m_MeshFilter != null) {
+        if (m_MeshRenderer != null) {
             m_MeshRenderer.sharedMaterials = [];
         }
     }
