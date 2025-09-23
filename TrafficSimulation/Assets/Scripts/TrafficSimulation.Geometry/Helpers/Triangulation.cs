@@ -59,6 +59,7 @@ public static class Triangulation {
                 if (contains)
                     continue;
 
+                // NOTE: @coderabbitai suggests that this is always CCW; if there's issues with the results, check this. CW order would be i2, i1, i0 (if needed).
                 triangles.Add(i0);
                 triangles.Add(i1);
                 triangles.Add(i2);
@@ -74,6 +75,7 @@ public static class Triangulation {
         }
 
         if (verts.Length == 3) {
+            // NOTE: @coderabbitai suggests that this is always CCW; if there's issues with the results, check this. CW order would be 2, 1, 0 (if needed).
             triangles.Add(verts[0]);
             triangles.Add(verts[1]);
             triangles.Add(verts[2]);
