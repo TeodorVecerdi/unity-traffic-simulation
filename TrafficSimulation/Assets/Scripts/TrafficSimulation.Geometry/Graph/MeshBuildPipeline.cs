@@ -36,7 +36,7 @@ public static class MeshBuildPipeline {
     /// <param name="meshName">The name to assign to the resulting mesh. Defaults to "Mesh" if not specified.</param>
     /// <returns>A <see cref="MeshBuildHandle"/> containing the job handle, writable mesh data, resulting mesh instance, and the associated materials.</returns>
     public static MeshBuildHandle ScheduleBuild(MeshGraph graph, in MeshGenerationContext context, string meshName = "Mesh") {
-        var layers = graph.Layers.Where(l => l is { Enabled: true } && l.Generator != null!).ToList();
+        var layers = graph.Layers.Where(l => l is { Enabled: true } && l.Generator != null! && l.Generator.Validate()).ToList();
         var layerCount = layers.Count;
         if (layerCount == 0) {
             return MeshBuildHandle.Empty(meshName);
