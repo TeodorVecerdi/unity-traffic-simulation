@@ -35,7 +35,7 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator, IDisposabl
             && m_SplineContainer.Spline.Count >= 2
             && m_MaxError > 0.0f
             && m_MaxStep > 0.0f
-            && math.all(m_InitialUp != float3.zero);
+            && math.any(m_InitialUp != float3.zero);
     }
 
     public override void GetCounts(in MeshGenerationContext context, out int vertexCount, out int indexCount) {
