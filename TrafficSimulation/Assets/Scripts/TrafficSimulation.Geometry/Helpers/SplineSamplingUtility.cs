@@ -2,7 +2,7 @@
 using Unity.Mathematics;
 using UnityEngine.Splines;
 
-namespace TrafficSimulation.Geometry.Splines;
+namespace TrafficSimulation.Geometry.Helpers;
 
 public static class SplineSamplingUtility {
     public static void AdaptiveSample(Spline spline, List<float> results, float maxError = 0.05f, float maxStep = 2.0f) {
@@ -22,22 +22,21 @@ public static class SplineSamplingUtility {
         tangents.Add(new float4(t1, 0.0f));
     }
 
-    private static void Subdivide(Spline spline, float t0, float t1, float maxErrorSq, float maxStep, List<float> results) {
+    private static bool ShouldSubdivide(Spline spline, float t0, float t1, float maxErrorSq, float maxStep) {
         var p0 = spline.EvaluatePosition(t0);
         var p1 = spline.EvaluatePosition(t1);
         var pm = spline.EvaluatePosition((t0 + t1) * 0.5f);
 
-        // chord midpoint
         var chordMid = (p0 + p1) * 0.5f;
         var deviation = math.distancesq(pm, chordMid);
 
-        // arc-length estimate via chord length vs midpoint split
         var splitLen = math.distance(p0, pm) + math.distance(pm, p1);
 
-        var tooCurvy = deviation > maxErrorSq;
-        var tooLong = splitLen > maxStep;
+        return deviation > maxErrorSq || splitLen > maxStep;
+    }
 
-        if (tooCurvy || tooLong) {
+    private static void Subdivide(Spline spline, float t0, float t1, float maxErrorSq, float maxStep, List<float> results) {
+        if (ShouldSubdivide(spline, t0, t1, maxErrorSq, maxStep)) {
             var tm = (t0 + t1) * 0.5f;
             Subdivide(spline, t0, tm, maxErrorSq, maxStep, results);
             Subdivide(spline, tm, t1, maxErrorSq, maxStep, results);
@@ -48,21 +47,7 @@ public static class SplineSamplingUtility {
 
     // Overload writing directly to NativeLists for float4 positions/tangents (w=1 and w=0 respectively).
     private static void Subdivide(Spline spline, float t0, float t1, float maxErrorSq, float maxStep, ref NativeList<float4> positions, ref NativeList<float4> tangents) {
-        var p0 = spline.EvaluatePosition(t0);
-        var p1 = spline.EvaluatePosition(t1);
-        var pm = spline.EvaluatePosition((t0 + t1) * 0.5f);
-
-        // chord midpoint
-        var chordMid = (p0 + p1) * 0.5f;
-        var deviation = math.distancesq(pm, chordMid);
-
-        // arc-length estimate via chord length vs midpoint split
-        var splitLen = math.distance(p0, pm) + math.distance(pm, p1);
-
-        var tooCurvy = deviation > maxErrorSq;
-        var tooLong = splitLen > maxStep;
-
-        if (tooCurvy || tooLong) {
+        if (ShouldSubdivide(spline, t0, t1, maxErrorSq, maxStep)) {
             var tm = (t0 + t1) * 0.5f;
             Subdivide(spline, t0, tm, maxErrorSq, maxStep, ref positions, ref tangents);
             Subdivide(spline, tm, t1, maxErrorSq, maxStep, ref positions, ref tangents);

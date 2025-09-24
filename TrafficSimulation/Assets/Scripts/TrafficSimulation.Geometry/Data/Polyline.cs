@@ -13,8 +13,7 @@ public sealed class Polyline : MonoBehaviour {
     [SerializeField] private Color m_HardGizmoColor = Color.cyan;
     [SerializeField, Min(0f)] private float m_SphereRadius = 0.075f;
 
-    public List<float3> Points => m_Points.Select(p => p.Position).ToList();
-    public int PointCount => m_Points.Count;
+    public List<PolylinePoint> Points => m_Points;
 
     public (List<float3> Points, List<bool> EmitEdges) GetGeometry() {
         if (m_Points == null! || m_Points.Count == 0) {
@@ -89,13 +88,5 @@ public sealed class Polyline : MonoBehaviour {
             Handles.Label(worldPos + Vector3.up * (m_SphereRadius * 1.5f), i.ToString(), style);
         }
 #endif
-    }
-
-    [Serializable]
-    private struct PolylinePoint {
-        [HideLabel]
-        public float3 Position;
-        [LabelText("Hard?")]
-        public bool HardEdge;
     }
 }

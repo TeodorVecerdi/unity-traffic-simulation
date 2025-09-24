@@ -1,15 +1,15 @@
 ﻿using Sirenix.OdinInspector;
 using TrafficSimulation.Geometry.Data;
 using TrafficSimulation.Geometry.Helpers;
-using TrafficSimulation.Geometry.Splines;
 using Unity.Collections;
 using Unity.Mathematics;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Splines;
 
 namespace TrafficSimulation.Geometry.Prototyping;
 
-[ExecuteInEditMode]
+[ExecuteAlways]
 public sealed class SplineFrameGizmos : MonoBehaviour {
     [SerializeField, Required] private SplineContainer m_SplineContainer = null!;
     [SerializeField, OnValueChanged(nameof(RepaintScene)), MinValue(0.005f)] private float m_MaxError = 0.05f;
@@ -187,7 +187,7 @@ public sealed class SplineFrameGizmos : MonoBehaviour {
     private void RepaintScene() {
         InvalidateCache();
 #if UNITY_EDITOR
-        UnityEditor.SceneView.RepaintAll();
+        SceneView.RepaintAll();
 #endif
     }
 }

@@ -1,5 +1,5 @@
 ﻿using Sirenix.OdinInspector;
-using TrafficSimulation.Geometry.Splines;
+using TrafficSimulation.Geometry.Helpers;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Splines;

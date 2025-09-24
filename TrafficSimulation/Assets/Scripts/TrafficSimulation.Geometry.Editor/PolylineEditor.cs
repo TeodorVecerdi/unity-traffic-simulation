@@ -15,11 +15,12 @@ public sealed class PolylineEditor : UnityEditor.Editor {
         for (var i = 0; i < polyline.Points.Count; i++) {
             EditorGUI.BeginChangeCheck();
             var p = polyline.Points[i];
-            var worldPos = tr.TransformPoint(new Vector3(p.x, p.y, p.z));
+            var worldPos = tr.TransformPoint(p.Position);
             var newWorldPos = Handles.PositionHandle(worldPos, Quaternion.identity);
             if (EditorGUI.EndChangeCheck()) {
                 Undo.RecordObject(polyline, "Move Polyline Point");
-                polyline.Points[i] = tr.InverseTransformPoint(newWorldPos);
+                p.Position = tr.InverseTransformPoint(newWorldPos);
+                polyline.Points[i] = p;
                 EditorUtility.SetDirty(polyline);
             }
         }

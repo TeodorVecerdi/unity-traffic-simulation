@@ -2,7 +2,6 @@
 using TrafficSimulation.Geometry.Data;
 using TrafficSimulation.Geometry.Graph;
 using TrafficSimulation.Geometry.Helpers;
-using TrafficSimulation.Geometry.Splines;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -32,15 +31,18 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator, IDisposabl
 
     public override bool Validate() {
         return m_Polyline != null
-            && m_Polyline.PointCount >= 2
+            && m_Polyline.Points.Count >= 2
             && m_SplineContainer != null
             && m_SplineContainer.Spline.Count >= 2
             && m_MaxError > 0.0f
             && m_MaxStep > 0.0f
-            && math.any(m_InitialUp != float3.zero);
+            && math.lengthsq(m_InitialUp) > 1e-6f;
     }
 
     public override void GetCounts(in MeshGenerationContext context, out int vertexCount, out int indexCount) {
+        // Dispose any previous allocations
+        Dispose();
+
         var positions = new NativeList<float4>(Allocator.Temp);
         var tangents = new NativeList<float4>(Allocator.Temp);
         SplineSamplingUtility.AdaptiveSample(m_SplineContainer.Spline, ref positions, ref tangents, m_MaxError, m_MaxStep);
@@ -48,7 +50,7 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator, IDisposabl
         var frames = new NativeArray<Frame>(positions.Length, Allocator.TempJob);
         var positionsArray = positions.AsArray();
         var tangentsArray = tangents.AsArray();
-        FrameBuilder.BuildFramesFromPolyline(in positionsArray, in tangentsArray, m_InitialUp, m_FixedUp, ref frames);
+        FrameBuilder.BuildFramesFromPolyline(in positionsArray, in tangentsArray, math.normalize(m_InitialUp), m_FixedUp, ref frames);
         m_CachedFrames = frames;
 
         positions.Dispose();
@@ -77,10 +79,10 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator, IDisposabl
     }
 
     public void Dispose() {
-        m_CachedFrames.Dispose();
-        m_PolylinePoints.Dispose();
-        m_PolylineEmitEdges.Dispose();
-        m_PolylineSegmentDirections.Dispose();
+        if (m_CachedFrames.IsCreated) m_CachedFrames.Dispose();
+        if (m_PolylinePoints.IsCreated) m_PolylinePoints.Dispose();
+        if (m_PolylineEmitEdges.IsCreated) m_PolylineEmitEdges.Dispose();
+        if (m_PolylineSegmentDirections.IsCreated) m_PolylineSegmentDirections.Dispose();
     }
 
     [BurstCompile]
@@ -103,8 +105,7 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator, IDisposabl
             // Build 2D segment directions
             for (var i = 0; i < ringSize - 1; i++) {
                 var d = PolylinePoints[i + 1].xy - PolylinePoints[i].xy;
-                var lsq = math.lengthsq(d);
-                PolylineSegmentDirections[i] = lsq > 1e-8f ? d / math.sqrt(lsq) : new float2(1, 0);
+                PolylineSegmentDirections[i] = math.normalizesafe(d, new float2(1, 0));
             }
 
             // Normal matrix (handles non-uniform scale)
@@ -130,12 +131,10 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator, IDisposabl
                         dir2D = PolylineSegmentDirections[ringSize - 2];
                     } else {
                         var sum = PolylineSegmentDirections[j - 1] + PolylineSegmentDirections[j];
-                        dir2D = math.lengthsq(sum) > 1e-8f
-                            ? math.normalize(sum)
-                            : PolylineSegmentDirections[j];
+                        dir2D = math.normalizesafe(sum, PolylineSegmentDirections[j]);
                     }
 
-                    var along  = frame.Tangent.xyz;
+                    var along = frame.Tangent.xyz;
                     var across = frame.Binormal.xyz * dir2D.x + frame.Normal.xyz * dir2D.y;
 
                     // Build normal in local space, then transform with normal matrix
@@ -171,10 +170,6 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator, IDisposabl
                     indexOffset += 6;
                 }
             }
-        }
-
-        private static void TransformPoint(in float2 point, in Frame frame, out float4 transformedPoint) {
-            transformedPoint = frame.Position + point.x * frame.Binormal + point.y * frame.Normal;
         }
     }
 }
