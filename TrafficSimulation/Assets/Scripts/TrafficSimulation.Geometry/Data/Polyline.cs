@@ -20,7 +20,7 @@ public sealed class Polyline : MonoBehaviour {
         foreach (var p in m_Points) {
             pts.Add(p.Position);
             if (p.HardEdge) {
-                pts.Add(p.Position + new float3(1e-4f, 0f, 0f));
+                pts.Add(p.Position);
             }
         }
         return pts;
