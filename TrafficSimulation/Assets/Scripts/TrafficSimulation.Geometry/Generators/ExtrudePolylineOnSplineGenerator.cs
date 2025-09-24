@@ -27,6 +27,7 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator, IDisposabl
     private int m_CachedIndexCount = -1;
     private NativeArray<Frame> m_CachedFrames;
     private NativeArray<float3> m_PolylinePoints;
+    private NativeArray<float2> m_PolylineSegmentDirections;
 
     public override bool Validate() {
         return m_Polyline != null
@@ -57,12 +58,14 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator, IDisposabl
         indexCount = m_CachedIndexCount;
 
         m_PolylinePoints = new NativeArray<float3>(m_Polyline.Points.ToArray(), Allocator.TempJob);
+        m_PolylineSegmentDirections = new NativeArray<float2>(m_Polyline.Points.Count, Allocator.TempJob);
     }
 
     public override JobHandle ScheduleFill(in MeshGenerationContext context, in MeshBufferSlice bufferSlice, JobHandle dependency) {
         var job = new ExtrudeJob {
             Frames = m_CachedFrames,
             PolylinePoints = m_PolylinePoints,
+            PolylineSegmentDirections = m_PolylineSegmentDirections,
             BufferSlice = bufferSlice,
             LocalToWorld = m_SplineContainer.transform.localToWorldMatrix,
         };
@@ -72,12 +75,14 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator, IDisposabl
     public void Dispose() {
         m_CachedFrames.Dispose();
         m_PolylinePoints.Dispose();
+        m_PolylineSegmentDirections.Dispose();
     }
 
     [BurstCompile]
     private struct ExtrudeJob : IJob {
         [ReadOnly] public NativeArray<Frame> Frames;
         [ReadOnly] public NativeArray<float3> PolylinePoints;
+        public NativeArray<float2> PolylineSegmentDirections;
         public MeshBufferSlice BufferSlice;
         public float4x4 LocalToWorld;
 
@@ -89,6 +94,12 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator, IDisposabl
             var ringSize = PolylinePoints.Length;
             var ringCount = Frames.Length;
 
+            // Calculate segment directions
+            for (var i = 0; i < ringSize - 1; i++) {
+                var direction = math.normalize(PolylinePoints[i + 1].xy - PolylinePoints[i].xy);
+                PolylineSegmentDirections[i] = direction;
+            }
+
             for (var i = 0; i < ringCount; i++) {
                 var frame = Frames[i];
                 var vertexOffset = i * ringSize;
@@ -98,11 +109,25 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator, IDisposabl
                     TransformPoint(PolylinePoints[j].xy, frame, out var transformedPoint);
                     transformedPoint.w = 1.0f;
                     transformedPoint = math.mul(LocalToWorld, transformedPoint);
+
+                    float2 direction2D;
+                    if (j == 0) {
+                        direction2D = PolylineSegmentDirections[j];
+                    } else if (j == ringSize - 1) {
+                        direction2D = PolylineSegmentDirections[j - 1];
+                    } else {
+                        direction2D = math.normalize(PolylineSegmentDirections[j - 1] + PolylineSegmentDirections[j]);
+                    }
+
+                    var along = frame.Tangent.xyz;
+                    var across = frame.Binormal.xyz * direction2D.x + frame.Normal.xyz * direction2D.y;
+                    var normal = math.normalize(math.cross(along, across));
                     var normalMatrix = math.transpose(math.inverse((float3x3)LocalToWorld));
-                    var normal = math.normalize(math.mul(normalMatrix, frame.Normal.xyz));
+                    var finalNormal = math.normalize(math.mul(normalMatrix, normal));
+
                     vertices[vertexOffset + j] = new MeshVertex {
                         Position = transformedPoint.xyz,
-                        Normal = normal,
+                        Normal = finalNormal,
                         UV = new float2((float)j / (ringSize - 1), (float)i / (ringCount - 1)),
                     };
                 }
