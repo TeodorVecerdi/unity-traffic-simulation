@@ -28,10 +28,11 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator, IDisposabl
     private NativeArray<Frame> m_CachedFrames;
     private NativeArray<float3> m_PolylinePoints;
     private NativeArray<float2> m_PolylineSegmentDirections;
+    private NativeArray<bool> m_PolylineEmitEdges;
 
     public override bool Validate() {
         return m_Polyline != null
-            && m_Polyline.Points.Count >= 2
+            && m_Polyline.PointCount >= 2
             && m_SplineContainer != null
             && m_SplineContainer.Spline.Count >= 2
             && m_MaxError > 0.0f
@@ -53,18 +54,21 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator, IDisposabl
         positions.Dispose();
         tangents.Dispose();
 
-        (m_CachedVertexCount, m_CachedIndexCount, _) = PolylineExtrusionHelper.CalculateExtrusionCounts(m_Polyline.Points.Count, frames.Length, false);
+        var (points, emitEdges) = m_Polyline.GetGeometry();
+        (m_CachedVertexCount, m_CachedIndexCount, _) = PolylineExtrusionHelper.CalculateExtrusionCounts(points.Count, frames.Length, false, emitEdges);
         vertexCount = m_CachedVertexCount;
         indexCount = m_CachedIndexCount;
 
-        m_PolylinePoints = new NativeArray<float3>(m_Polyline.Points.ToArray(), Allocator.TempJob);
-        m_PolylineSegmentDirections = new NativeArray<float2>(m_Polyline.Points.Count, Allocator.TempJob);
+        m_PolylinePoints = new NativeArray<float3>(points.ToArray(), Allocator.TempJob);
+        m_PolylineEmitEdges = new NativeArray<bool>(emitEdges.ToArray(), Allocator.TempJob);
+        m_PolylineSegmentDirections = new NativeArray<float2>(points.Count, Allocator.TempJob);
     }
 
     public override JobHandle ScheduleFill(in MeshGenerationContext context, in MeshBufferSlice bufferSlice, JobHandle dependency) {
         var job = new ExtrudeJob {
             Frames = m_CachedFrames,
             PolylinePoints = m_PolylinePoints,
+            PolylineEmitEdges = m_PolylineEmitEdges,
             PolylineSegmentDirections = m_PolylineSegmentDirections,
             BufferSlice = bufferSlice,
             LocalToWorld = m_SplineContainer.transform.localToWorldMatrix,
@@ -75,6 +79,7 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator, IDisposabl
     public void Dispose() {
         m_CachedFrames.Dispose();
         m_PolylinePoints.Dispose();
+        m_PolylineEmitEdges.Dispose();
         m_PolylineSegmentDirections.Dispose();
     }
 
@@ -82,6 +87,7 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator, IDisposabl
     private struct ExtrudeJob : IJob {
         [ReadOnly] public NativeArray<Frame> Frames;
         [ReadOnly] public NativeArray<float3> PolylinePoints;
+        [ReadOnly] public NativeArray<bool> PolylineEmitEdges;
         public NativeArray<float2> PolylineSegmentDirections;
         public MeshBufferSlice BufferSlice;
         public float4x4 LocalToWorld;
@@ -149,6 +155,8 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator, IDisposabl
 
                 var previousVertexOffset = vertexOffset - ringSize;
                 for (var j = 0; j < ringSize - 1; j++) {
+                    if (!PolylineEmitEdges[j])
+                        continue;
                     var v0 = previousVertexOffset + j;
                     var v1 = previousVertexOffset + j + 1;
                     var v2 = vertexOffset + j;

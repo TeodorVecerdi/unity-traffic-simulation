@@ -13,23 +13,48 @@ public sealed class Polyline : MonoBehaviour {
     [SerializeField] private Color m_HardGizmoColor = Color.cyan;
     [SerializeField, Min(0f)] private float m_SphereRadius = 0.075f;
 
-    public List<float3> Points => ComputePoints();
+    public List<float3> Points => m_Points.Select(p => p.Position).ToList();
+    public int PointCount => m_Points.Count;
 
-    private List<float3> ComputePoints() {
-        var pts = new List<float3>(m_Points.Count);
-        foreach (var p in m_Points) {
-            pts.Add(p.Position);
-            if (p.HardEdge) {
-                pts.Add(p.Position);
+    public (List<float3> Points, List<bool> EmitEdges) GetGeometry() {
+        if (m_Points == null! || m_Points.Count == 0) {
+            return ([], []);
+        }
+
+        var points = new List<float3>(m_Points.Count);
+        var emitEdges = new List<bool>(m_Points.Count);
+
+        for (var i = 0; i < m_Points.Count; i++) {
+            var p = m_Points[i].Position;
+
+            // Normal addition
+            AddPoint(p);
+
+            // Duplicate hard points; edge between duplicates must be skipped
+            if (m_Points[i].HardEdge) {
+                AddPoint(p, forceSkipEdge: true);
             }
         }
-        return pts;
+
+        if (points.Count != emitEdges.Count + 1) {
+            throw new Exception($"Internal error in {nameof(Polyline)}: points count ({points.Count}) != emitEdges count + 1 ({emitEdges.Count + 1})");
+        }
+
+        return (points, emitEdges);
+
+        void AddPoint(float3 p, bool forceSkipEdge = false) {
+            if (points.Count > 0) {
+                var isDegenerate = math.lengthsq(p - points[^1]) <= 1e-12f;
+                emitEdges.Add(!(forceSkipEdge || isDegenerate));
+            }
+
+            points.Add(p);
+        }
     }
 
     private void OnDrawGizmos() {
         if (m_Points == null! || m_Points.Count == 0)
             return;
-
 
         // Draw spheres at each point
         foreach (var p in m_Points) {
