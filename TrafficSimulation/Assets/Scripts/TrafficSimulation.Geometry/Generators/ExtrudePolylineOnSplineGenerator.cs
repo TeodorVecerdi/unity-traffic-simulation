@@ -94,11 +94,15 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator, IDisposabl
             var ringSize = PolylinePoints.Length;
             var ringCount = Frames.Length;
 
-            // Calculate segment directions
+            // Build 2D segment directions
             for (var i = 0; i < ringSize - 1; i++) {
-                var direction = math.normalize(PolylinePoints[i + 1].xy - PolylinePoints[i].xy);
-                PolylineSegmentDirections[i] = direction;
+                var d = PolylinePoints[i + 1].xy - PolylinePoints[i].xy;
+                var lsq = math.lengthsq(d);
+                PolylineSegmentDirections[i] = lsq > 1e-8f ? d / math.sqrt(lsq) : new float2(1, 0);
             }
+
+            // Normal matrix (handles non-uniform scale)
+            var normalMatrix = math.transpose(math.inverse((float3x3)LocalToWorld));
 
             for (var i = 0; i < ringCount; i++) {
                 var frame = Frames[i];
@@ -106,28 +110,35 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator, IDisposabl
 
                 // Write vertices
                 for (var j = 0; j < ringSize; j++) {
-                    TransformPoint(PolylinePoints[j].xy, frame, out var transformedPoint);
-                    transformedPoint.w = 1.0f;
-                    transformedPoint = math.mul(LocalToWorld, transformedPoint);
+                    // Position
+                    var point = PolylinePoints[j].xy;
+                    var position = frame.Position + point.x * frame.Binormal + point.y * frame.Normal;
+                    position.w = 1f;
+                    var worldPosition = math.mul(LocalToWorld, position).xyz;
 
-                    float2 direction2D;
+                    // Normal
+                    float2 dir2D;
                     if (j == 0) {
-                        direction2D = PolylineSegmentDirections[j];
+                        dir2D = PolylineSegmentDirections[0];
                     } else if (j == ringSize - 1) {
-                        direction2D = PolylineSegmentDirections[j - 1];
+                        dir2D = PolylineSegmentDirections[ringSize - 2];
                     } else {
-                        direction2D = math.normalize(PolylineSegmentDirections[j - 1] + PolylineSegmentDirections[j]);
+                        var sum = PolylineSegmentDirections[j - 1] + PolylineSegmentDirections[j];
+                        dir2D = math.lengthsq(sum) > 1e-8f
+                            ? math.normalize(sum)
+                            : PolylineSegmentDirections[j];
                     }
 
-                    var along = frame.Tangent.xyz;
-                    var across = frame.Binormal.xyz * direction2D.x + frame.Normal.xyz * direction2D.y;
-                    var normal = math.normalize(math.cross(along, across));
-                    var normalMatrix = math.transpose(math.inverse((float3x3)LocalToWorld));
-                    var finalNormal = math.normalize(math.mul(normalMatrix, normal));
+                    var along  = frame.Tangent.xyz;
+                    var across = frame.Binormal.xyz * dir2D.x + frame.Normal.xyz * dir2D.y;
+
+                    // Build normal in local space, then transform with normal matrix
+                    var localNormal = math.normalize(math.cross(along, across));
+                    var normal = math.normalize(math.mul(normalMatrix, localNormal));
 
                     vertices[vertexOffset + j] = new MeshVertex {
-                        Position = transformedPoint.xyz,
-                        Normal = finalNormal,
+                        Position = worldPosition,
+                        Normal = normal,
                         UV = new float2((float)j / (ringSize - 1), (float)i / (ringCount - 1)),
                     };
                 }
