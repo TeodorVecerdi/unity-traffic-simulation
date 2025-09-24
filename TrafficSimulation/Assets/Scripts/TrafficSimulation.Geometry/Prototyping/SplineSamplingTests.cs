@@ -1,5 +1,5 @@
 ﻿using Sirenix.OdinInspector;
-using TrafficSimulation.Geometry.Splines;
+using TrafficSimulation.Geometry.Helpers;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Splines;
@@ -13,11 +13,12 @@ public sealed class SplineSamplingTests : MonoBehaviour {
     [Space]
     [SerializeField] private float m_GizmoSize = 0.1f;
     [SerializeField] private Color m_GizmoColor = Color.yellow;
+    [SerializeField] private bool m_DrawGizmos = true;
 
     private List<float>? m_Samples;
 
     private void OnDrawGizmos() {
-        if (m_SplineContainer == null) return;
+        if (!m_DrawGizmos || m_SplineContainer == null) return;
 
         // Update samples
         m_Samples ??= [];

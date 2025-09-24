@@ -15,6 +15,10 @@ public sealed class QuadGenerator : MeshGenerator {
     [SerializeField, MinValue(0.001f)] private float m_Length = 1.0f;
     [SerializeField] private Vector3 m_Normal = Vector3.up;
 
+    public override bool Validate() {
+        return m_Width > 0.0f && m_Length > 0.0f && m_Normal != Vector3.zero;
+    }
+
     public override void GetCounts(in MeshGenerationContext context, out int vertexCount, out int indexCount) {
         vertexCount = 4;
         indexCount = 6;

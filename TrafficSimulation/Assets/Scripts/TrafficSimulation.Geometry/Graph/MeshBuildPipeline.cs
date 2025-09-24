@@ -36,7 +36,7 @@ public static class MeshBuildPipeline {
     /// <param name="meshName">The name to assign to the resulting mesh. Defaults to "Mesh" if not specified.</param>
     /// <returns>A <see cref="MeshBuildHandle"/> containing the job handle, writable mesh data, resulting mesh instance, and the associated materials.</returns>
     public static MeshBuildHandle ScheduleBuild(MeshGraph graph, in MeshGenerationContext context, string meshName = "Mesh") {
-        var layers = graph.Layers.Where(l => l is { Enabled: true } && l.Generator != null!).ToList();
+        var layers = graph.Layers.Where(l => l is { Enabled: true } && l.Generator != null! && l.Generator.Validate()).ToList();
         var layerCount = layers.Count;
         if (layerCount == 0) {
             return MeshBuildHandle.Empty(meshName);
@@ -69,6 +69,7 @@ public static class MeshBuildPipeline {
 
         // Keep submesh descriptors here; they’ll be set before apply.
         var subMeshDescriptors = new SubMeshDescriptor[layerCount];
+        var disposables = new List<IDisposable>();
 
         // Schedule each layer's fill job.
         var handles = new NativeArray<JobHandle>(layerCount, Allocator.Temp);
@@ -95,6 +96,10 @@ public static class MeshBuildPipeline {
             );
 
             var jobHandle = layers[i].Generator.ScheduleFill(context, slice, default);
+            if (layers[i].Generator is IDisposable disposable) {
+                disposables.Add(disposable);
+            }
+
             handles[i] = jobHandle;
 
             vertexOffset += vertexCount;
@@ -121,7 +126,8 @@ public static class MeshBuildPipeline {
             writable,
             resultMesh,
             materials,
-            subMeshDescriptors
+            subMeshDescriptors,
+            disposables
         );
     }
 }
