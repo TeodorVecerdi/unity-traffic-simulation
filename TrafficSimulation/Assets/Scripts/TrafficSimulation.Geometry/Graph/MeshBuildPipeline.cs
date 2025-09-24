@@ -69,6 +69,7 @@ public static class MeshBuildPipeline {
 
         // Keep submesh descriptors here; they’ll be set before apply.
         var subMeshDescriptors = new SubMeshDescriptor[layerCount];
+        var disposables = new List<IDisposable>();
 
         // Schedule each layer's fill job.
         var handles = new NativeArray<JobHandle>(layerCount, Allocator.Temp);
@@ -95,6 +96,10 @@ public static class MeshBuildPipeline {
             );
 
             var jobHandle = layers[i].Generator.ScheduleFill(context, slice, default);
+            if (layers[i].Generator is IDisposable disposable) {
+                disposables.Add(disposable);
+            }
+
             handles[i] = jobHandle;
 
             vertexOffset += vertexCount;
@@ -121,7 +126,8 @@ public static class MeshBuildPipeline {
             writable,
             resultMesh,
             materials,
-            subMeshDescriptors
+            subMeshDescriptors,
+            disposables
         );
     }
 }
