@@ -9,6 +9,7 @@ using UnityEngine.Splines;
 
 namespace TrafficSimulation.Geometry.Prototyping;
 
+[ExecuteInEditMode]
 public sealed class SplineFrameGizmos : MonoBehaviour {
     [SerializeField, Required] private SplineContainer m_SplineContainer = null!;
     [SerializeField, OnValueChanged(nameof(RepaintScene)), MinValue(0.005f)] private float m_MaxError = 0.05f;
