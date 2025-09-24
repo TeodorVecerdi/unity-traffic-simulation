@@ -1,0 +1,19 @@
+﻿{
+    "name": "TrafficSimulation.Geometry.Editor",
+    "rootNamespace": "",
+    "references": [
+        "TrafficSimulation.Geometry",
+        "Unity.Mathematics"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
