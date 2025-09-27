@@ -41,12 +41,12 @@ public sealed class MeshBuildHandle {
 
         try {
             foreach (var workItem in m_WorkItems) {
-                var key = new SurfaceKey(workItem.Layer.Material!);
+                var key = new SurfaceKey(workItem.Layer.Material);
 
                 if (!surfaceMap.TryGetValue(key, out var surfaceIndex)) {
                     surfaceIndex = surfaces.Count;
                     surfaceMap.Add(key, surfaceIndex);
-                    surfaces.Add(new SurfaceAggregator(workItem.Layer.Material!, Allocator.Temp));
+                    surfaces.Add(new SurfaceAggregator(workItem.Layer.Material, Allocator.Temp));
                 }
 
                 var chunk = workItem.Chunk;

@@ -36,7 +36,7 @@ public static class MeshBuildPipeline {
     /// <returns>A <see cref="MeshBuildHandle"/> containing the job handle, writable mesh data, resulting mesh instance, and the associated materials.</returns>
     public static MeshBuildHandle ScheduleBuild(MeshGraph graph, in MeshGenerationContext context, string meshName = "Mesh") {
         var layers = graph.Layers
-            .Where(l => l is { Enabled: true, Generator: not null, Material: not null })
+            .Where(l => l is { Enabled: true } && l.Generator != null! && l.Material != null!)
             .ToList();
         if (layers.Count == 0) {
             return MeshBuildHandle.Empty(meshName);
@@ -49,7 +49,7 @@ public static class MeshBuildPipeline {
             var layer = layers[i];
 
             // Estimate capacity
-            layer.Generator!.EstimateCounts(context, out var vertexCount, out var indexCount);
+            layer.Generator.EstimateCounts(context, out var vertexCount, out var indexCount);
             if (vertexCount is 0) vertexCount = GeometryChunk.DefaultVertexCapacity;
             if (indexCount is 0) indexCount = GeometryChunk.DefaultIndexCapacity;
 
