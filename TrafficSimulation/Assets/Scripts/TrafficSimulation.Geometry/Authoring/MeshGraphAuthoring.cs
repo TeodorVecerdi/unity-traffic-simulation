@@ -72,6 +72,16 @@ public sealed class MeshGraphAuthoring : MonoBehaviour {
         }
     }
 
+    private void OnDisable() {
+        if (m_Handle is not null) {
+            var mesh = m_Handle.GetResult().Mesh;
+            mesh.DestroyObject();
+            m_Handle = null;
+        }
+
+        Clear();
+    }
+
     private void Update() {
         if (m_Handle is null) return;
         if (m_Handle.IsCompleted) {
