@@ -13,6 +13,7 @@ public sealed class QuadGenerator : MeshGenerator {
     [SerializeField, MinValue(0.001f)] private float m_Width = 1.0f;
     [SerializeField, MinValue(0.001f)] private float m_Length = 1.0f;
     [SerializeField] private Vector3 m_Normal = Vector3.up;
+    [SerializeField] private bool m_WindingClockwise = true;
 
     public override bool Validate() {
         return m_Width > 0.0f && m_Length > 0.0f && m_Normal != Vector3.zero;
@@ -28,6 +29,7 @@ public sealed class QuadGenerator : MeshGenerator {
             Width = m_Width,
             Length = m_Length,
             Normal = m_Normal.normalized,
+            WindingClockwise = m_WindingClockwise,
             Writer = geometryWriter,
         }.Schedule(dependency);
     }
@@ -37,6 +39,7 @@ public sealed class QuadGenerator : MeshGenerator {
         public float Width;
         public float Length;
         public float3 Normal;
+        public bool WindingClockwise;
         public GeometryWriter Writer;
 
         public void Execute() {
@@ -51,7 +54,11 @@ public sealed class QuadGenerator : MeshGenerator {
             var vertex2 = new MeshVertex { Position = +tangent * halfSize.x + bitangent * halfSize.z, Normal = Normal, UV = new float2(1.0f, 1.0f) };
             var vertex3 = new MeshVertex { Position = -tangent * halfSize.x + bitangent * halfSize.z, Normal = Normal, UV = new float2(0.0f, 1.0f) };
 
-            Writer.WriteQuad(vertex0, vertex1, vertex2, vertex3);
+            if (WindingClockwise) {
+                Writer.WriteQuad(vertex0, vertex1, vertex2, vertex3);
+            } else {
+                Writer.WriteQuadCCW(vertex0, vertex1, vertex2, vertex3);
+            }
         }
     }
 }

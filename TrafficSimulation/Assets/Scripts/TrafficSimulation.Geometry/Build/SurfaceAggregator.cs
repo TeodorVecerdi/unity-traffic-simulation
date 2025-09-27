@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace TrafficSimulation.Geometry.Build;
 
-internal struct SurfaceAggregator(Material material, Allocator allocator) : IDisposable {
+internal sealed class SurfaceAggregator(Material material, Allocator allocator) : IDisposable {
     public readonly Material Material = material;
     public NativeList<MeshVertex> Vertices = new(GeometryChunk.DefaultVertexCapacity, allocator);
     public NativeList<int> Indices = new(GeometryChunk.DefaultIndexCapacity, allocator);

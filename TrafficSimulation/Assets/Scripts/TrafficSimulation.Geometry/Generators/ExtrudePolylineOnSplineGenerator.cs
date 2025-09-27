@@ -77,6 +77,7 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator {
 
             // 2D segment directions (for normals)
             for (var i = 0; i < ringSize - 1; i++) {
+                // WindingClockwise swaps direction to maintain consistent normal orientation
                 var direction = WindingClockwise
                     ? PolylinePoints[i].xy - PolylinePoints[i + 1].xy
                     : PolylinePoints[i + 1].xy - PolylinePoints[i].xy;

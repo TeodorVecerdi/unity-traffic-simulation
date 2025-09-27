@@ -122,6 +122,10 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
             s += cycleLength;
         }
 
+        // Ensure the domain endpoints are sampled
+        ts.Add(0.0f);
+        ts.Add(1.0f);
+
         // Sort unique ts and evaluate to build precise frames
         ts.Sort();
         RemoveDuplicates(ref ts);
@@ -182,6 +186,10 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
         // Output
         public GeometryWriter Writer;
 
+        private float3 ComputeLocalOffset(in Frame frame) {
+            return frame.Binormal.xyz * LocalOffset.x + frame.Normal.xyz * LocalOffset.y + frame.Tangent.xyz * LocalOffset.z;
+        }
+
         public void Execute() {
             var frameCount = Frames.Length;
             if (frameCount < 2) return;
@@ -230,11 +238,8 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
 
                     var n0 = f0.Normal.xyz;
                     var r0 = f0.Binormal.xyz;
-                    var up0 = f0.Normal.xyz;
 
-                    // Local offset applied to the centerline before expanding width
-                    var offset0 = r0 * LocalOffset.x + up0 * LocalOffset.y + f0.Tangent.xyz * LocalOffset.z;
-
+                    var offset0 = ComputeLocalOffset(in f0);
                     var left0 = (p0 + offset0) - r0 * halfWidth;
                     var right0 = (p0 + offset0) + r0 * halfWidth;
 
@@ -258,9 +263,8 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
 
                 var n1 = f1.Normal.xyz;
                 var r1 = f1.Binormal.xyz;
-                var up1 = f1.Normal.xyz;
 
-                var offset1 = r1 * LocalOffset.x + up1 * LocalOffset.y + f1.Tangent.xyz * LocalOffset.z;
+                var offset1 = ComputeLocalOffset(in f1);
                 var left1 = (p1 + offset1) - r1 * halfWidth;
                 var right1 = (p1 + offset1) + r1 * halfWidth;
 

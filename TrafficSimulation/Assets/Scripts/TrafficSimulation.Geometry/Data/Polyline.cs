@@ -43,7 +43,7 @@ public sealed class Polyline : MonoBehaviour {
 
         void AddPoint(float3 p, bool forceSkipEdge = false) {
             if (positions.Count > 0) {
-                var isDegenerate = math.lengthsq(p - positions[^1]) <= 1e-12f;
+                var isDegenerate = math.lengthsq(p - positions[^1]) <= math.EPSILON;
                 emitEdges.Add(!(forceSkipEdge || isDegenerate));
             }
 

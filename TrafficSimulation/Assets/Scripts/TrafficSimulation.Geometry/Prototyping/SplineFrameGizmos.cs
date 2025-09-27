@@ -89,7 +89,7 @@ public sealed class SplineFrameGizmos : MonoBehaviour {
         }
 
         m_Frames.Clear();
-        SplineSampler.Sample(spline, maxError, ref m_Frames);
+        SplineSampler.Sample(spline, maxError, m_InitialUp, m_FixedUp, ref m_Frames);
 
         m_HasValidCache = true;
         m_LastMaxError = maxError;
