@@ -13,7 +13,6 @@ namespace TrafficSimulation.Geometry.Prototyping;
 public sealed class SplineFrameGizmos : MonoBehaviour {
     [SerializeField, Required] private SplineContainer m_SplineContainer = null!;
     [SerializeField, OnValueChanged(nameof(RepaintScene)), MinValue(0.005f)] private float m_MaxError = 0.05f;
-    [SerializeField, OnValueChanged(nameof(RepaintScene)), MinValue(0.01f)] private float m_MaxStep = 2.0f;
     [Space]
     [SerializeField] private bool m_FixedUp = true; // if true, no banking
     [SerializeField] private Vector3 m_InitialUp = Vector3.up; // treated as world-up; converted to local before frame build
@@ -28,14 +27,11 @@ public sealed class SplineFrameGizmos : MonoBehaviour {
     [SerializeField] private bool m_DrawGizmos = true;
 
     // Cached data
-    private NativeList<float4> m_CachedPositions;
-    private NativeList<float4> m_CachedTangents;
-    private NativeArray<Frame> m_CachedFrames;
+    private NativeList<Frame> m_Frames;
     private bool m_HasValidCache;
 
     // Parameter tracking for cache invalidation
     private float m_LastMaxError;
-    private float m_LastMaxStep;
     private bool m_LastFixedUp;
     private Vector3 m_LastInitialUp;
     private Spline? m_LastSpline;
@@ -51,18 +47,17 @@ public sealed class SplineFrameGizmos : MonoBehaviour {
 
         var tr = m_SplineContainer.transform;
         var maxError = math.max(0.005f, m_MaxError);
-        var maxStep = math.max(0.01f, m_MaxStep);
         var drawEvery = math.max(1, m_DrawEvery);
 
         // Check if cache needs to be invalidated
-        if (!IsCacheValid(spline, tr, maxError, maxStep)) {
+        if (!IsCacheValid(spline, tr, maxError)) {
             InvalidateCache();
-            UpdateCache(spline, tr, maxError, maxStep);
+            UpdateCache(spline, tr, maxError);
         }
 
         // Use cached data for drawing
-        if (m_HasValidCache && m_CachedFrames.IsCreated) {
-            var frames = m_CachedFrames;
+        if (m_HasValidCache && m_Frames.IsCreated) {
+            var frames = m_Frames;
             for (var i = 0; i < frames.Length; i += drawEvery) {
                 var f = frames[i];
                 var localPos = new Vector3(f.Position.x, f.Position.y, f.Position.z);
@@ -79,65 +74,34 @@ public sealed class SplineFrameGizmos : MonoBehaviour {
         }
     }
 
-    private bool IsCacheValid(Spline spline, Transform tr, float maxError, float maxStep) {
+    private bool IsCacheValid(Spline spline, Transform tr, float maxError) {
         return m_HasValidCache &&
                m_LastMaxError == maxError &&
-               m_LastMaxStep == maxStep &&
                m_LastFixedUp == m_FixedUp &&
                m_LastInitialUp == m_InitialUp &&
                m_LastSpline == spline &&
                m_LastTransform == tr;
     }
 
-    private void UpdateCache(Spline spline, Transform tr, float maxError, float maxStep) {
-        var positions = new NativeList<float4>(Allocator.Temp);
-        var tangents = new NativeList<float4>(Allocator.Temp);
-        SplineSamplingUtility.AdaptiveSample(spline, ref positions, ref tangents, maxError, maxStep);
-
-        if (positions.Length == 0) {
-            positions.Dispose();
-            tangents.Dispose();
-            return;
+    private void UpdateCache(Spline spline, Transform tr, float maxError) {
+        if (!m_Frames.IsCreated) {
+            m_Frames = new NativeList<Frame>(Allocator.Persistent);
         }
 
-        var frames = new NativeArray<Frame>(positions.Length, Allocator.Temp);
-        // Convert world up to spline local before building frames
-        var initialUpLocal = (float3)tr.InverseTransformDirection(m_InitialUp);
-        FrameBuilder.BuildFramesFromPolyline(positions.AsArray(), tangents.AsArray(), initialUpLocal, m_FixedUp, ref frames);
-
-        // Allocate persistent cache
-        m_CachedPositions = new NativeList<float4>(positions.Length, Allocator.Persistent);
-        m_CachedTangents = new NativeList<float4>(tangents.Length, Allocator.Persistent);
-        m_CachedFrames = new NativeArray<Frame>(frames.Length, Allocator.Persistent);
-
-        // Copy data to cache
-        m_CachedPositions.CopyFrom(positions);
-        m_CachedTangents.CopyFrom(tangents);
-        m_CachedFrames.CopyFrom(frames);
+        m_Frames.Clear();
+        SplineSampler.Sample(spline, maxError, ref m_Frames);
 
         m_HasValidCache = true;
-
-        // Update tracking parameters
         m_LastMaxError = maxError;
-        m_LastMaxStep = maxStep;
         m_LastFixedUp = m_FixedUp;
         m_LastInitialUp = m_InitialUp;
         m_LastSpline = spline;
         m_LastTransform = tr;
-
-        // Dispose temporary data
-        positions.Dispose();
-        tangents.Dispose();
-        frames.Dispose();
     }
 
     private void InvalidateCache() {
-        if (m_CachedPositions.IsCreated)
-            m_CachedPositions.Dispose();
-        if (m_CachedTangents.IsCreated)
-            m_CachedTangents.Dispose();
-        if (m_CachedFrames.IsCreated)
-            m_CachedFrames.Dispose();
+        if (m_Frames.IsCreated)
+            m_Frames.Dispose();
 
         m_HasValidCache = false;
         m_LastSpline = null;
