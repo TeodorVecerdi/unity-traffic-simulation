@@ -15,12 +15,12 @@ public sealed class Polyline : MonoBehaviour {
 
     public List<PolylinePoint> Points => m_Points;
 
-    public (List<float3> Points, List<bool> EmitEdges) GetGeometry() {
+    public (List<float3> Positions, List<bool> EmitEdges) GetGeometry() {
         if (m_Points == null! || m_Points.Count == 0) {
             return ([], []);
         }
 
-        var points = new List<float3>(m_Points.Count);
+        var positions = new List<float3>(m_Points.Count);
         var emitEdges = new List<bool>(m_Points.Count);
 
         for (var i = 0; i < m_Points.Count; i++) {
@@ -35,19 +35,19 @@ public sealed class Polyline : MonoBehaviour {
             }
         }
 
-        if (points.Count != emitEdges.Count + 1) {
-            throw new Exception($"Internal error in {nameof(Polyline)}: points count ({points.Count}) != emitEdges count + 1 ({emitEdges.Count + 1})");
+        if (positions.Count != emitEdges.Count + 1) {
+            throw new Exception($"Internal error in {nameof(Polyline)}: points count ({positions.Count}) != emitEdges count + 1 ({emitEdges.Count + 1})");
         }
 
-        return (points, emitEdges);
+        return (positions, emitEdges);
 
         void AddPoint(float3 p, bool forceSkipEdge = false) {
-            if (points.Count > 0) {
-                var isDegenerate = math.lengthsq(p - points[^1]) <= 1e-12f;
+            if (positions.Count > 0) {
+                var isDegenerate = math.lengthsq(p - positions[^1]) <= 1e-12f;
                 emitEdges.Add(!(forceSkipEdge || isDegenerate));
             }
 
-            points.Add(p);
+            positions.Add(p);
         }
     }
 
