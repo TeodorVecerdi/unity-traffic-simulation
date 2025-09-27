@@ -94,7 +94,7 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator {
                 for (var j = 0; j < ringSize; j++) {
                     var point = PolylinePoints[j].xy;
                     var position = frame.Position + point.x * frame.Binormal + point.y * frame.Normal;
-                    position.w = 1f;
+                    position.w = 1.0f;
                     var worldPosition = math.mul(LocalToWorld, position).xyz;
 
                     float2 dir2D;

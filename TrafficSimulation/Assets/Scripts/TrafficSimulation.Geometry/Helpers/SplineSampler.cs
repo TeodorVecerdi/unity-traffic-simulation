@@ -30,10 +30,10 @@ public static class SplineSampler {
         var maxErrorSq = maxError * maxError;
 
         // Recursively append frames at segment start parameters; we'll add t=1 at the end.
-        SubdivideIntoFrames(spline, 0.0f, 1.0f, maxErrorSq, in upHint, fixedUp, ref frames);
+        SubdivideIntoFrames(spline, 0.0f, 1.0f - math.EPSILON, maxErrorSq, in upHint, fixedUp, ref frames);
 
         // Ensure endpoint sample at t=1
-        AppendFrameAt(spline, 1.0f, in upHint, fixedUp, ref frames);
+        AppendFrameAt(spline, 1.0f - math.EPSILON, in upHint, fixedUp, ref frames);
     }
 
     private static void AppendFrameAt(Spline spline, float t, in float3 upHint, bool fixedUp, ref NativeList<Frame> frames) {

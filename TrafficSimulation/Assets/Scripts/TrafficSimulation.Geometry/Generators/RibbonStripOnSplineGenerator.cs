@@ -124,7 +124,7 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
 
         // Ensure the domain endpoints are sampled
         ts.Add(0.0f);
-        ts.Add(1.0f);
+        ts.Add(1.0f - math.EPSILON);
 
         // Sort unique ts and evaluate to build precise frames
         ts.Sort();
@@ -152,7 +152,7 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
         ts.Dispose();
     }
 
-    private static void RemoveDuplicates(ref NativeList<float> list, float epsilon = math.EPSILON) {
+    private static void RemoveDuplicates(ref NativeList<float> list, float epsilon = 1e-5f) {
         if (list.Length <= 1) return;
 
         var write = 1;
