@@ -7,8 +7,6 @@ namespace TrafficSimulation.Geometry.Helpers;
 
 [BurstCompile]
 public static class GeometryUtils {
-    public const float Epsilon = 1e-6f;
-
     [BurstCompile]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void AnyPerpendicular(in float3 v, out float3 result) {
@@ -16,7 +14,7 @@ public static class GeometryUtils {
         var a = math.abs(v.y) < 0.99f ? new float3(0.0f, 1.0f, 0.0f) : new float3(1.0f, 0.0f, 0.0f);
         var p = math.cross(v, a);
         var len = math.length(p);
-        result = len > Epsilon ? p / len : new float3(1.0f, 0.0f, 0.0f);
+        result = len > math.EPSILON ? p / len : new float3(1.0f, 0.0f, 0.0f);
     }
 
     [BurstCompile]
@@ -34,7 +32,7 @@ public static class GeometryUtils {
     public static float DistancePointLine(in float3 p, in float3 a, in float3 b) {
         var ab = b - a;
         var denominator = math.lengthsq(ab);
-        if (denominator <= Epsilon)
+        if (denominator <= math.EPSILON)
             return math.length(p - a);
         return math.length(math.cross(ab, p - a)) / math.sqrt(denominator);
     }
@@ -44,7 +42,7 @@ public static class GeometryUtils {
     public static void ClosestPointOnSegment(in float3 p, in float3 a, in float3 b, out float3 result) {
         var ab = b - a;
         var lengthSquared = math.lengthsq(ab);
-        if (lengthSquared <= Epsilon) {
+        if (lengthSquared <= math.EPSILON) {
             result = a;
             return;
         }
@@ -105,13 +103,13 @@ public static class GeometryUtils {
         var dot12 = math.dot(v1, v2);
 
         var denominator = dot00 * dot11 - dot01 * dot01;
-        if (math.abs(denominator) < Epsilon)
+        if (math.abs(denominator) < math.EPSILON)
             return false;
 
         var u = (dot11 * dot02 - dot01 * dot12) / denominator;
         var v = (dot00 * dot12 - dot01 * dot02) / denominator;
 
-        return u >= -Epsilon && v >= -Epsilon && u + v <= 1.0f + Epsilon;
+        return u >= -math.EPSILON && v >= -math.EPSILON && u + v <= 1.0f + math.EPSILON;
     }
 
     [BurstCompile]
@@ -119,7 +117,7 @@ public static class GeometryUtils {
     public static void ComputeTriangleNormal(in float3 a, in float3 b, in float3 c, out float3 normal) {
         var n = math.cross(b - a, c - a);
         var lengthSquared = math.lengthsq(n);
-        normal = lengthSquared > Epsilon
+        normal = lengthSquared > math.EPSILON
             ? n / math.sqrt(lengthSquared)
             : new float3(0.0f, 1.0f, 0.0f);
     }

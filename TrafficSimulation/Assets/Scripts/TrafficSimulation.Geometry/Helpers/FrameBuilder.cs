@@ -43,7 +43,7 @@ public static class FrameBuilder {
                 var sinTheta = math.length(axis);
                 var cosTheta = math.clamp(math.dot(previousTangent, tangent), -1.0f, 1.0f);
 
-                if (sinTheta <= GeometryUtils.Epsilon) {
+                if (sinTheta <= math.EPSILON) {
                     up = cosTheta < 0.0f ? -previousUp : previousUp;
                 } else {
                     var axisN = axis / sinTheta;

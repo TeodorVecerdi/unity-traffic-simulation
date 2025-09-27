@@ -42,7 +42,7 @@ public static class Triangulation {
                 var ab = b - a;
                 var bc = c - b;
                 var z = ab.x * bc.y - ab.y * bc.x;
-                if (z <= GeometryUtils.Epsilon)
+                if (z <= math.EPSILON)
                     continue;
 
                 var contains = false;
