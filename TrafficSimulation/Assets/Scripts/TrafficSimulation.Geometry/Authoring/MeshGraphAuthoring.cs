@@ -17,9 +17,12 @@ public sealed class MeshGraphAuthoring : MonoBehaviour {
     [Title("Settings")]
     [SerializeField] private bool m_AutoRebuildInEditor = true;
     [SerializeField] private bool m_BuildSync = true;
+    [SerializeField] private bool m_UpdateConstantly;
+    [SerializeField, ShowIf(nameof(m_UpdateConstantly)), Min(0.05f)] private float m_UpdateInterval = 0.1f;
 
     // Internal scheduled build state
     private MeshBuildHandle? m_Handle;
+    private float m_LastUpdateTime;
 
     // This gets shown in inspector for quick debugging
     [Title("Debug Info")]
@@ -83,6 +86,11 @@ public sealed class MeshGraphAuthoring : MonoBehaviour {
     }
 
     private void Update() {
+        if (m_UpdateConstantly && Time.time - m_LastUpdateTime >= m_UpdateInterval) {
+            m_LastUpdateTime = Time.time;
+            Rebuild();
+        }
+
         if (m_Handle is null) return;
         if (m_Handle.IsCompleted) {
             var result = m_Handle.GetResult();
