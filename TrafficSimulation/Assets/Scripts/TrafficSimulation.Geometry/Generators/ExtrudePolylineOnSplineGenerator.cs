@@ -134,7 +134,7 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator {
                 for (var j = 0; j < ringSize - 1; j++) {
                     if (!PolylineEmitEdges[j])
                         continue;
-                    Writer.WriteRingStitch(prevBase, rowBase, ringSize, closed: false);
+                    Writer.WriteRingStitchCCW(prevBase, rowBase, ringSize, closed: false);
                 }
             }
         }
