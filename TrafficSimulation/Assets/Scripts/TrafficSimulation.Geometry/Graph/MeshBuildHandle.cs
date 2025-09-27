@@ -8,7 +8,7 @@ using UnityEngine.Rendering;
 namespace TrafficSimulation.Geometry.Graph;
 
 public sealed class MeshBuildHandle {
-    public JobHandle JobHandle { get; private set; }
+    public JobHandle JobHandle { get; }
     private readonly List<LayerWorkItem> m_WorkItems;
     private readonly string m_MeshName;
     private MeshBuildResult m_BuildResult;
