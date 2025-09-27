@@ -20,29 +20,21 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
 
     [Title("Frames")]
     [SerializeField] private float m_MaxError = 0.2f;
-    [SerializeField, Tooltip("Use frame.Normal as vertex normal. If false, uses normalize(cross(Tangent, Binormal)).")]
-    private bool m_UseFrameNormals = true;
 
     [Title("Local Offset")]
     [SerializeField, Tooltip("Offset in frame space (Right, Up) meters. Useful to place multiple markings from the same spline.")]
     private float3 m_LocalOffset;
 
     [Title("Ribbon")]
-    [SerializeField, MinValue(0.001f)] private float m_Width = 0.2f;
+    [SerializeField, MinValue(0.001f), Unit(Units.Meter, Units.Millimeter)] private float m_Width = 0.2f;
     [SerializeField] private bool m_WindingClockwise;
 
-    [Title("UVs")]
-    [SerializeField, Tooltip("V = distance * UVScale + VStart")]
-    private float m_UVScale = 1.0f;
-    [SerializeField] private bool m_ResetVOnEachRun;
-    [SerializeField] private float m_VStart;
-
     [Title("Dash Pattern (Gaps)")]
-    [SerializeField, Tooltip("Meters ON per cycle. If <= 0 or OffLength <= 0 → always ON.")]
+    [SerializeField, Unit(Units.Meter)]
     private float m_OnLength = 1.0f;
-    [SerializeField, Tooltip("Meters OFF per cycle. If <= 0 or OnLength <= 0 → always ON.")]
+    [SerializeField, Unit(Units.Meter)]
     private float m_OffLength = 1.0f;
-    [SerializeField, Tooltip("Meters phase offset along the path (can be negative).")]
+    [SerializeField, Unit(Units.Meter)]
     private float m_Phase;
 
     public override bool Validate() {
@@ -69,8 +61,15 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
     }
 
     public override JobHandle ScheduleGenerate(in MeshGenerationContext context, GeometryWriter writer, JobHandle dependency) {
+        var spline = m_SplineContainer.Spline;
+
         var frameList = new NativeList<Frame>(Allocator.Temp);
-        SplineSampler.Sample(m_SplineContainer.Spline, m_MaxError, ref frameList);
+
+        if (m_OnLength <= 0.0f || m_OffLength <= 0.0f) {
+            SplineSampler.Sample(spline, m_MaxError, ref frameList);
+        } else {
+            SamplePreciseFrames(spline, ref frameList);
+        }
 
         var frames = new NativeArray<Frame>(frameList.Length, Allocator.TempJob);
         frames.CopyFrom(frameList.AsArray());
@@ -80,10 +79,6 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
             Frames = frames,
             Width = m_Width,
             WindingClockwise = m_WindingClockwise,
-            UseFrameNormals = m_UseFrameNormals,
-            UVScale = m_UVScale,
-            ResetVOnEachRun = m_ResetVOnEachRun,
-            VStart = m_VStart,
             OnLength = m_OnLength,
             OffLength = m_OffLength,
             Phase = m_Phase,
@@ -95,6 +90,79 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
         return job.Schedule(dependency);
     }
 
+    private void SamplePreciseFrames(Spline spline, ref NativeList<Frame> frameList) {
+        var totalLength = spline.GetLength();
+        var cycleLength = m_OnLength + m_OffLength;
+
+        // Collect transition points in arc-length space
+        var ts = new NativeList<float>(Allocator.Temp);
+
+        // Find first cycle start after (Phase mod cycleLength), cover [-cycleLength, totalLength + cycleLength]
+        var effectivePhase = m_Phase % cycleLength;
+        if (effectivePhase < 0.0f)
+            effectivePhase += cycleLength;
+        var s = effectivePhase - cycleLength; // start one cycle before to cover negatives
+
+        while (s < totalLength + cycleLength) {
+            var onEnd = s + m_OnLength;
+            var offEnd = onEnd + m_OffLength;
+
+            // Clamp to [0, totalLength] and add if within range
+            if (s >= 0.0f && s <= totalLength) {
+                ts.Add(s / totalLength);
+            }
+
+            if (onEnd >= 0.0f && onEnd <= totalLength) {
+                ts.Add(onEnd / totalLength);
+            }
+
+            if (offEnd >= 0.0f && offEnd <= totalLength) {
+                ts.Add(offEnd / totalLength);
+            }
+
+            s += cycleLength;
+        }
+
+        // Sort unique ts and evaluate to build precise frames
+        ts.Sort();
+        RemoveDuplicates(ref ts);
+
+        frameList.Resize(ts.Length, NativeArrayOptions.ClearMemory);
+
+        // Sample frames
+        for (var i = 0; i < ts.Length; i++) {
+            var t = ts[i];
+            var pos = spline.EvaluatePosition(t);
+            var tangent = spline.EvaluateTangent(t);
+            tangent = math.normalizesafe(tangent, new float3(0.0f, 0.0f, 1.0f));
+
+            GeometryUtils.BuildOrthonormalBasis(in tangent, math.up(), out var right, out var up);
+
+            frameList[i] = new Frame {
+                Position = new float4(pos, 1.0f),
+                Tangent = new float4(tangent, 0.0f),
+                Normal = new float4(up, 0.0f),
+                Binormal = new float4(right, 0.0f),
+            };
+        }
+
+        ts.Dispose();
+    }
+
+    private static void RemoveDuplicates(ref NativeList<float> list, float epsilon = 1e-5f) {
+        if (list.Length <= 1) return;
+
+        var write = 1;
+        for (var read = 1; read < list.Length; read++) {
+            if (math.abs(list[read] - list[write - 1]) > epsilon) {
+                list[write] = list[read];
+                write++;
+            }
+        }
+
+        list.Length = write;
+    }
+
     [BurstCompile]
     private struct RibbonStripWithGapsJob : IJob {
         [DeallocateOnJobCompletion, ReadOnly] public NativeArray<Frame> Frames;
@@ -103,15 +171,7 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
         public float Width; // meters
         [MarshalAs(UnmanagedType.U1)]
         public bool WindingClockwise;
-        [MarshalAs(UnmanagedType.U1)]
-        public bool UseFrameNormals; // if false -> normal = normalize(cross(Tangent, Binormal))
         public float3 LocalOffset;
-
-        // UVs
-        public float UVScale; // V = distance * UVScale
-        [MarshalAs(UnmanagedType.U1)]
-        public bool ResetVOnEachRun; // reset V to 0 for each ON run
-        public float VStart; // added after reset logic
 
         // Dash pattern
         public float OnLength; // meters ON per cycle
@@ -130,12 +190,11 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
 
             var halfWidth = 0.5f * Width;
 
-            var gaps = (OnLength > 0f) && (OffLength > 0f);
+            var gaps = (OnLength > 0.0f) && (OffLength > 0.0f);
             var cycle = OnLength + OffLength;
 
-            var sPrev = 0f; // accumulated distance up to frame i-1
+            var sPrev = 0.0f; // accumulated distance up to frame i-1
             var inRun = false; // currently inside an ON run
-            var vOrigin = 0f; // V reset origin for current run
 
             var previousLeftIndex = -1; // previous strip pair indices
             var previousRightIndex = -1; // previous strip pair indices
@@ -149,122 +208,82 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
 
                 var p0 = f0.Position.xyz;
                 var p1 = f1.Position.xyz;
-                var segLen = math.distance(p0, p1);
+                var segmentLength = math.distance(p0, p1);
 
                 // Decide if this segment is ON or OFF (sample pattern at segment midpoint)
                 var on = true;
                 if (gaps) {
-                    var midS = sPrev + 0.5f * segLen + Phase;
+                    var midS = sPrev + 0.5f * segmentLength + Phase;
                     var k = math.floor(midS / cycle);
                     var frac = midS - k * cycle; // positive modulo
                     on = frac < OnLength;
                 }
 
-                if (on) {
-                    if (!inRun) {
-                        // Start a new ON run: seed first pair at frame i-1
-                        inRun = true;
-                        vOrigin = ResetVOnEachRun ? sPrev : 0f;
-
-                        var n0 = UseFrameNormals
-                            ? math.normalize(f0.Normal.xyz)
-                            : math.normalize(math.cross(f0.Tangent.xyz, f0.Binormal.xyz));
-                        var r0 = math.normalize(f0.Binormal.xyz);
-                        var up0 = math.normalize(f0.Normal.xyz);
-
-                        // Local offset applied to the centerline before expanding width
-                        var offset0 = r0 * LocalOffset.x + up0 * LocalOffset.y + f0.Tangent.xyz * LocalOffset.z;
-
-                        var left0 = (p0 + offset0) - r0 * halfWidth;
-                        var right0 = (p0 + offset0) + r0 * halfWidth;
-
-                        var v0 = (sPrev - vOrigin) * UVScale + VStart;
-
-                        var vL0 = new MeshVertex {
-                            Position = math.mul(LocalToWorld, new float4(left0, 1f)).xyz,
-                            Normal = math.normalize(math.mul(nrmM, n0)),
-                            UV = new float2(0f, v0),
-                        };
-                        var vR0 = new MeshVertex {
-                            Position = math.mul(LocalToWorld, new float4(right0, 1f)).xyz,
-                            Normal = math.normalize(math.mul(nrmM, n0)),
-                            UV = new float2(1f, v0),
-                        };
-
-                        // Append seed pair
-                        previousLeftIndex = Writer.Vertices.Length;
-                        Writer.WriteVertex(vL0);
-                        previousRightIndex = Writer.Vertices.Length;
-                        Writer.WriteVertex(vR0);
-
-                        // Append the next pair at frame i and stitch
-                        var n1 = UseFrameNormals
-                            ? math.normalize(f1.Normal.xyz)
-                            : math.normalize(math.cross(f1.Tangent.xyz, f1.Binormal.xyz));
-                        var r1 = math.normalize(f1.Binormal.xyz);
-                        var up1 = math.normalize(f1.Normal.xyz);
-
-                        var offset1 = r1 * LocalOffset.x + up1 * LocalOffset.y;
-
-                        var left1 = (p1 + offset1) - r1 * halfWidth;
-                        var right1 = (p1 + offset1) + r1 * halfWidth;
-
-                        var v1 = (sPrev + segLen - vOrigin) * UVScale + VStart;
-
-                        var leftVertex = new MeshVertex {
-                            Position = math.mul(LocalToWorld, new float4(left1, 1f)).xyz,
-                            Normal = math.normalize(math.mul(nrmM, n1)),
-                            UV = new float2(0f, v1),
-                        };
-                        var rightVertex = new MeshVertex {
-                            Position = math.mul(LocalToWorld, new float4(right1, 1f)).xyz,
-                            Normal = math.normalize(math.mul(nrmM, n1)),
-                            UV = new float2(1f, v1),
-                        };
-
-                        if (WindingClockwise) {
-                            Writer.WriteStripStep(leftVertex, rightVertex, previousLeftIndex, previousRightIndex, out previousLeftIndex, out previousRightIndex);
-                        } else {
-                            Writer.WriteStripStepCCW(leftVertex, rightVertex, previousLeftIndex, previousRightIndex, out previousLeftIndex, out previousRightIndex);
-                        }
-                    } else {
-                        // Continue current ON run: append pair at frame i and stitch
-                        var n1 = UseFrameNormals
-                            ? math.normalize(f1.Normal.xyz)
-                            : math.normalize(math.cross(f1.Tangent.xyz, f1.Binormal.xyz));
-                        var r1 = math.normalize(f1.Binormal.xyz);
-                        var up1 = math.normalize(f1.Normal.xyz);
-
-                        var offset1 = r1 * LocalOffset.x + up1 * LocalOffset.y;
-
-                        var left1 = (p1 + offset1) - r1 * halfWidth;
-                        var right1 = (p1 + offset1) + r1 * halfWidth;
-
-                        var v1 = (sPrev + segLen - vOrigin) * UVScale + VStart;
-
-                        var leftVertex = new MeshVertex {
-                            Position = math.mul(LocalToWorld, new float4(left1, 1f)).xyz,
-                            Normal = math.normalize(math.mul(nrmM, n1)),
-                            UV = new float2(0f, v1),
-                        };
-                        var rightVertex = new MeshVertex {
-                            Position = math.mul(LocalToWorld, new float4(right1, 1f)).xyz,
-                            Normal = math.normalize(math.mul(nrmM, n1)),
-                            UV = new float2(1f, v1),
-                        };
-
-                        if (WindingClockwise) {
-                            Writer.WriteStripStep(leftVertex, rightVertex, previousLeftIndex, previousRightIndex, out previousLeftIndex, out previousRightIndex);
-                        } else {
-                            Writer.WriteStripStepCCW(leftVertex, rightVertex, previousLeftIndex, previousRightIndex, out previousLeftIndex, out previousRightIndex);
-                        }
-                    }
-                } else {
+                if (!on) {
                     // End/skip run
                     inRun = false;
+                    sPrev += segmentLength;
+                    continue;
                 }
 
-                sPrev += segLen;
+                if (!inRun) {
+                    // Start a new ON run: seed first pair at frame i-1
+                    inRun = true;
+
+                    var n0 = f0.Normal.xyz;
+                    var r0 = f0.Binormal.xyz;
+                    var up0 = f0.Normal.xyz;
+
+                    // Local offset applied to the centerline before expanding width
+                    var offset0 = r0 * LocalOffset.x + up0 * LocalOffset.y + f0.Tangent.xyz * LocalOffset.z;
+
+                    var left0 = (p0 + offset0) - r0 * halfWidth;
+                    var right0 = (p0 + offset0) + r0 * halfWidth;
+
+                    var vL0 = new MeshVertex {
+                        Position = math.mul(LocalToWorld, new float4(left0, 1.0f)).xyz,
+                        Normal = math.normalize(math.mul(nrmM, n0)),
+                        UV = new float2(0.0f, 0.0f),
+                    };
+                    var vR0 = new MeshVertex {
+                        Position = math.mul(LocalToWorld, new float4(right0, 1.0f)).xyz,
+                        Normal = math.normalize(math.mul(nrmM, n0)),
+                        UV = new float2(1.0f, 0.0f),
+                    };
+
+                    // Append seed pair
+                    previousLeftIndex = Writer.Vertices.Length;
+                    Writer.WriteVertex(vL0);
+                    previousRightIndex = Writer.Vertices.Length;
+                    Writer.WriteVertex(vR0);
+                }
+
+                var n1 = f1.Normal.xyz;
+                var r1 = f1.Binormal.xyz;
+                var up1 = f1.Normal.xyz;
+
+                var offset1 = r1 * LocalOffset.x + up1 * LocalOffset.y + f1.Tangent.xyz * LocalOffset.z;
+                var left1 = (p1 + offset1) - r1 * halfWidth;
+                var right1 = (p1 + offset1) + r1 * halfWidth;
+
+                var leftVertex = new MeshVertex {
+                    Position = math.mul(LocalToWorld, new float4(left1, 1.0f)).xyz,
+                    Normal = math.normalize(math.mul(nrmM, n1)),
+                    UV = new float2(0.0f, 1.0f),
+                };
+                var rightVertex = new MeshVertex {
+                    Position = math.mul(LocalToWorld, new float4(right1, 1.0f)).xyz,
+                    Normal = math.normalize(math.mul(nrmM, n1)),
+                    UV = new float2(1.0f, 1.0f),
+                };
+
+                if (WindingClockwise) {
+                    Writer.WriteStripStep(leftVertex, rightVertex, previousLeftIndex, previousRightIndex, out previousLeftIndex, out previousRightIndex);
+                } else {
+                    Writer.WriteStripStepCCW(leftVertex, rightVertex, previousLeftIndex, previousRightIndex, out previousLeftIndex, out previousRightIndex);
+                }
+
+                sPrev += segmentLength;
             }
         }
     }
