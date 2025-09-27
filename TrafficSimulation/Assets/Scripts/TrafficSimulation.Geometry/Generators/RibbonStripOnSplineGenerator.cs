@@ -149,7 +149,7 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
         ts.Dispose();
     }
 
-    private static void RemoveDuplicates(ref NativeList<float> list, float epsilon = 1e-5f) {
+    private static void RemoveDuplicates(ref NativeList<float> list, float epsilon = math.EPSILON) {
         if (list.Length <= 1) return;
 
         var write = 1;
@@ -190,8 +190,8 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
 
             var halfWidth = 0.5f * Width;
 
-            var gaps = (OnLength > 0.0f) && (OffLength > 0.0f);
-            var cycle = OnLength + OffLength;
+            var hasGaps = OnLength > 0.0f && OffLength > 0.0f;
+            var cycleLength = OnLength + OffLength;
 
             var sPrev = 0.0f; // accumulated distance up to frame i-1
             var inRun = false; // currently inside an ON run
@@ -212,10 +212,10 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
 
                 // Decide if this segment is ON or OFF (sample pattern at segment midpoint)
                 var on = true;
-                if (gaps) {
+                if (hasGaps) {
                     var midS = sPrev + 0.5f * segmentLength + Phase;
-                    var k = math.floor(midS / cycle);
-                    var frac = midS - k * cycle; // positive modulo
+                    var k = math.floor(midS / cycleLength);
+                    var frac = midS - k * cycleLength; // positive modulo
                     on = frac < OnLength;
                 }
 
