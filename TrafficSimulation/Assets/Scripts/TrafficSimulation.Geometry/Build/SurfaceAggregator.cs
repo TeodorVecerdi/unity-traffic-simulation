@@ -14,11 +14,13 @@ internal struct SurfaceAggregator(Material material, Allocator allocator) : IDis
         if (Indices.IsCreated) Indices.Dispose();
     }
 
-    public void AppendChunk(ref NativeList<MeshVertex> v, ref NativeList<int> i) {
+    public void AppendChunk(ref NativeList<MeshVertex> vertices, ref NativeList<int> indices) {
         var baseV = Vertices.Length;
-        Vertices.AddRange(v.AsArray());
-        for (var idx = 0; idx < i.Length; idx++) {
-            Indices.Add(i[idx] + baseV);
+        Vertices.AddRange(vertices.AsArray());
+
+        Indices.Capacity = Indices.Length + indices.Length;
+        for (var i = 0; i < indices.Length; i++) {
+            Indices.Add(indices[i] + baseV);
         }
     }
 }
