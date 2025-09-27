@@ -198,13 +198,18 @@ public struct GeometryWriter(NativeList<MeshVertex> vertices, NativeList<int> in
     /// <param name="curStart">Base index of the current ring (segment 0).</param>
     /// <param name="segmentCount">Number of segments/vertices in each ring.</param>
     /// <param name="closed">If true, stitch the last segment to the first; otherwise, leave the gap open.</param>
+    /// <param name="emitEdges">Optional array indicating edge/segments to include.</param>
     /// <remarks>
     /// For each segment i, stitches (prev[i], prev[i+1], cur[i+1]) and (cur[i+1], cur[i], prev[i]).
-    /// Use <see cref="WriteRingStitchCCW(int, int, int, bool)"/> for CCW.
+    /// Use <see cref="WriteRingStitchCCW"/> for CCW.
     /// </remarks>
-    public void WriteRingStitch(int prevStart, int curStart, int segmentCount, bool closed) {
+    public void WriteRingStitch(int prevStart, int curStart, int segmentCount, bool closed, NativeArray<bool> emitEdges = default) {
         var count = segmentCount - (closed ? 0 : 1);
         for (var i = 0; i < count; i++) {
+            if (emitEdges.IsCreated && !emitEdges[i]) {
+                continue;
+            }
+
             var i1 = (i + 1) % segmentCount;
 
             var p0 = prevStart + i;
@@ -223,13 +228,18 @@ public struct GeometryWriter(NativeList<MeshVertex> vertices, NativeList<int> in
     /// <param name="curStart">Base index of the current ring (segment 0).</param>
     /// <param name="segmentCount">Number of segments/vertices in each ring.</param>
     /// <param name="closed">If true, stitch the last segment to the first; otherwise, leave the gap open.</param>
+    /// <param name="emitEdges">Optional array indicating edge/segments to include.</param>
     /// <remarks>
     /// For each segment i, stitches (prev[i], cur[i+1], prev[i+1]) and (cur[i+1], prev[i], cur[i]).
-    /// The CW counterpart is <see cref="WriteRingStitch(int, int, int, bool)"/>.
+    /// The CW counterpart is <see cref="WriteRingStitch"/>.
     /// </remarks>
-    public void WriteRingStitchCCW(int prevStart, int curStart, int segmentCount, bool closed) {
+    public void WriteRingStitchCCW(int prevStart, int curStart, int segmentCount, bool closed, NativeArray<bool> emitEdges = default) {
         var count = segmentCount - (closed ? 0 : 1);
         for (var i = 0; i < count; i++) {
+            if (emitEdges.IsCreated && !emitEdges[i]) {
+                continue;
+            }
+
             var i1 = (i + 1) % segmentCount;
 
             var p0 = prevStart + i;
