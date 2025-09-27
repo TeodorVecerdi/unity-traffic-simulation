@@ -12,7 +12,6 @@ public static class PolylineExtrusionHelper {
         return (vertexCount, indexCount, quadCount);
     }
 
-    // New overload that takes into account skipped edges
     public static (int VertexCount, int IndexCount, int QuadCount) CalculateExtrusionCounts(int polylinePointCount, int crossSectionVertexCount, bool isClosed, IReadOnlyList<bool> emitEdges) {
         if (polylinePointCount < 2 || crossSectionVertexCount < 2)
             return (0, 0, 0);

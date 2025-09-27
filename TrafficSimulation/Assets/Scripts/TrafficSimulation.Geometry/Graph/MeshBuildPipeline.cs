@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using TrafficSimulation.Geometry.Build;
 using TrafficSimulation.Geometry.Data;
 using Unity.Collections;
 using Unity.Jobs;
-using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -10,7 +10,7 @@ namespace TrafficSimulation.Geometry.Graph;
 
 public static class MeshBuildPipeline {
     [SuppressMessage("ReSharper", "RedundantArgumentDefaultValue")]
-    private static readonly VertexAttributeDescriptor[] s_Layout = [
+    internal static readonly VertexAttributeDescriptor[] Layout = [
         new(VertexAttribute.Position, VertexAttributeFormat.Float32, 3, 0),
         new(VertexAttribute.Normal, VertexAttributeFormat.Float32, 3, 0),
         new(VertexAttribute.TexCoord0, VertexAttributeFormat.Float32, 2, 0),
@@ -24,8 +24,7 @@ public static class MeshBuildPipeline {
     /// <param name="meshName">The name to assign to the generated mesh. Defaults to "Mesh" if not explicitly specified.</param>
     /// <returns>A <see cref="MeshBuildResult"/> which contains the generated <see cref="Mesh"/> and associated <see cref="Material"/> array.</returns>
     public static MeshBuildResult Build(MeshGraph graph, in MeshGenerationContext context, string meshName = "Mesh") {
-        return ScheduleBuild(graph, context, meshName)
-            .GetResult();
+        return ScheduleBuild(graph, context, meshName).GetResult();
     }
 
     /// <summary>
@@ -36,98 +35,42 @@ public static class MeshBuildPipeline {
     /// <param name="meshName">The name to assign to the resulting mesh. Defaults to "Mesh" if not specified.</param>
     /// <returns>A <see cref="MeshBuildHandle"/> containing the job handle, writable mesh data, resulting mesh instance, and the associated materials.</returns>
     public static MeshBuildHandle ScheduleBuild(MeshGraph graph, in MeshGenerationContext context, string meshName = "Mesh") {
-        var layers = graph.Layers.Where(l => l is { Enabled: true } && l.Generator != null! && l.Generator.Validate()).ToList();
-        var layerCount = layers.Count;
-        if (layerCount == 0) {
+        var layers = graph.Layers
+            .Where(l => l is { Enabled: true } && l.Generator != null! && l.Material != null!)
+            .ToList();
+        if (layers.Count == 0) {
             return MeshBuildHandle.Empty(meshName);
         }
 
-        // 1) Query counts per layer.
-        var vertexCounts = new int[layerCount];
-        var indexCounts = new int[layerCount];
-        var totalVertices = 0;
-        var totalIndices = 0;
-        for (var i = 0; i < layerCount; i++) {
-            layers[i].Generator.GetCounts(context, out var vertexCount, out var indexCount);
-            vertexCounts[i] = math.max(0, vertexCount);
-            indexCounts[i] = math.max(0, indexCount);
-            totalVertices += vertexCounts[i];
-            totalIndices += indexCounts[i];
+        // Prepare per-layer scratch chunks and schedule jobs
+        var perLayer = new List<LayerWorkItem>(layers.Count);
+        var handles = new NativeArray<JobHandle>(layers.Count, Allocator.Temp);
+        for (var i = 0; i < layers.Count; i++) {
+            var layer = layers[i];
+
+            // Estimate capacity
+            layer.Generator.EstimateCounts(context, out var vertexCount, out var indexCount);
+            if (vertexCount is 0) vertexCount = GeometryChunk.DefaultVertexCapacity;
+            if (indexCount is 0) indexCount = GeometryChunk.DefaultIndexCapacity;
+
+            // Setup work item
+            var chunk = new GeometryChunk(Allocator.TempJob, vertexCount, indexCount);
+            var writer = new GeometryWriter(chunk.Vertices, chunk.Indices);
+            var handle = layer.Generator.ScheduleGenerate(context, writer, default);
+            var workItem = new LayerWorkItem(layer, chunk, handle);
+
+            perLayer.Add(workItem);
+            handles[i] = handle;
         }
 
-        // 2) Allocate a single MeshData with one interleaved vertex buffer
-        // and one index buffer (UInt32 for simplicity).
-        var writable = Mesh.AllocateWritableMeshData(1);
-        var meshData = writable[0];
-        meshData.SetVertexBufferParams(totalVertices, s_Layout);
-        meshData.SetIndexBufferParams(totalIndices, IndexFormat.UInt32);
-        meshData.subMeshCount = layerCount;
-
-        // 3) Get global buffers and create per-layer slices.
-        var vertexOffset = 0;
-        var indexOffset = 0;
-
-        // Keep submesh descriptors here; they’ll be set before apply.
-        var subMeshDescriptors = new SubMeshDescriptor[layerCount];
-        var disposables = new List<IDisposable>();
-
-        // Schedule each layer's fill job.
-        var handles = new NativeArray<JobHandle>(layerCount, Allocator.Temp);
-        for (var i = 0; i < layerCount; i++) {
-            var vertexCount = vertexCounts[i];
-            var indexCount = indexCounts[i];
-
-            // Set submesh descriptor:
-            // Indices are zero-based relative to this submesh slice.
-            // We set baseVertex to the global vertex offset.
-            subMeshDescriptors[i] = new SubMeshDescriptor(indexOffset, indexCount) {
-                topology = MeshTopology.Triangles,
-                baseVertex = vertexOffset,
-                firstVertex = vertexOffset,
-                vertexCount = vertexCount,
-            };
-
-            var slice = new MeshBufferSlice(
-                meshData,
-                vertexOffset,
-                vertexCount,
-                indexOffset,
-                indexCount
-            );
-
-            var jobHandle = layers[i].Generator.ScheduleFill(context, slice, default);
-            if (layers[i].Generator is IDisposable disposable) {
-                disposables.Add(disposable);
-            }
-
-            handles[i] = jobHandle;
-
-            vertexOffset += vertexCount;
-            indexOffset += indexCount;
-        }
-
-        // 4) Combine and return a handle to finalize later.
+        // Combine all layer jobs
         var combined = JobHandle.CombineDependencies(handles);
         handles.Dispose();
 
-        // Prepare result Mesh and materials list.
-        var materials = new Material[layerCount];
-        for (var i = 0; i < layerCount; i++) {
-            materials[i] = layers[i].Material;
-        }
-
-        var resultMesh = new Mesh {
-            name = meshName,
-            indexFormat = IndexFormat.UInt32,
-        };
-
         return new MeshBuildHandle(
             combined,
-            writable,
-            resultMesh,
-            materials,
-            subMeshDescriptors,
-            disposables
+            perLayer,
+            meshName
         );
     }
 }

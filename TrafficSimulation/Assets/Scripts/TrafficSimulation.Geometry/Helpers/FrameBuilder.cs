@@ -14,64 +14,60 @@ public static class FrameBuilder {
         Hint.Assume(positions.Length == frames.Length);
 
         var n = positions.Length;
-        if (n < 2) return;
+        if (n < 2)
+            return;
 
         // Initialize first frame
-        var p0 = positions[0];
-        var t0 = math.normalizesafe(tangents[0].xyz, new float3(0.0f, 0.0f, 1.0f));
-        GeometryUtils.BuildOrthonormalBasis(in t0, in initialUp, out var right0, out var up0);
+        var firstTangent = math.normalizesafe(tangents[0].xyz, new float3(0.0f, 0.0f, 1.0f));
+        GeometryUtils.BuildOrthonormalBasis(in firstTangent, in initialUp, out var firstRight, out var firstUp);
 
         frames[0] = new Frame {
-            Position = new float4(p0.x, p0.y, p0.z, 1.0f),
-            Tangent = new float4(t0, 0.0f),
-            Normal = new float4(up0, 0.0f),
-            Binormal = new float4(right0, 0.0f),
+            Position = new float4(positions[0].xyz, 1.0f),
+            Tangent = new float4(firstTangent, 0.0f),
+            Normal = new float4(firstUp, 0.0f),
+            Binormal = new float4(firstRight, 0.0f),
         };
 
-        var prevT = t0;
-        var prevUp = up0;
+        var previousTangent = firstTangent;
+        var previousUp = firstUp;
 
         for (var i = 1; i < n; i++) {
-            var pv = positions[i];
-            var tv = tangents[i];
-            var p = new float3(pv.x, pv.y, pv.z);
-            var t = math.normalizesafe(tv.xyz, prevT);
-
+            var tangent = math.normalizesafe(tangents[i].xyz, previousTangent);
             float3 right;
             float3 up;
 
             if (fixedUp) {
-                GeometryUtils.BuildOrthonormalBasis(in t, in initialUp, out right, out up);
+                GeometryUtils.BuildOrthonormalBasis(in tangent, in initialUp, out right, out up);
             } else {
-                var axis = math.cross(prevT, t);
+                var axis = math.cross(previousTangent, tangent);
                 var sinTheta = math.length(axis);
-                var cosTheta = math.clamp(math.dot(prevT, t), -1.0f, 1.0f);
+                var cosTheta = math.clamp(math.dot(previousTangent, tangent), -1.0f, 1.0f);
 
-                if (sinTheta <= GeometryUtils.Epsilon) {
-                    up = cosTheta < 0.0f ? -prevUp : prevUp;
+                if (sinTheta <= math.EPSILON) {
+                    up = cosTheta < 0.0f ? -previousUp : previousUp;
                 } else {
                     var axisN = axis / sinTheta;
                     var oneMinusC = 1.0f - cosTheta;
 
-                    up = prevUp * cosTheta
-                       + math.cross(axisN, prevUp) * sinTheta
-                       + axisN * math.dot(axisN, prevUp) * oneMinusC;
+                    up = previousUp * cosTheta
+                       + math.cross(axisN, previousUp) * sinTheta
+                       + axisN * math.dot(axisN, previousUp) * oneMinusC;
 
-                    up = math.normalizesafe(up - t * math.dot(up, t), up);
+                    up = math.normalizesafe(up - tangent * math.dot(up, tangent), up);
                 }
 
-                right = math.normalize(math.cross(up, t));
+                right = math.normalize(math.cross(up, tangent));
             }
 
             frames[i] = new Frame {
-                Position = new float4(p, 1.0f),
-                Tangent = new float4(t, 0.0f),
+                Position = new float4(positions[i].xyz, 1.0f),
+                Tangent = new float4(tangent, 0.0f),
                 Normal = new float4(up, 0.0f),
                 Binormal = new float4(right, 0.0f),
             };
 
-            prevT = t;
-            prevUp = up;
+            previousTangent = tangent;
+            previousUp = up;
         }
     }
 }

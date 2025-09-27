@@ -19,8 +19,7 @@ public sealed class MeshGraphAuthoring : MonoBehaviour {
     [SerializeField] private bool m_BuildSync = true;
 
     // Internal scheduled build state
-    private MeshBuildHandle m_Handle;
-    private bool m_HasScheduled;
+    private MeshBuildHandle? m_Handle;
 
     // This gets shown in inspector for quick debugging
     [Title("Debug Info")]
@@ -44,15 +43,14 @@ public sealed class MeshGraphAuthoring : MonoBehaviour {
             var result = MeshBuildPipeline.Build(m_Graph, context, meshName);
             ApplyResult(result.Mesh, result.Materials);
         } else {
-            if (m_HasScheduled) {
+            if (m_Handle is not null) {
                 // If there's an existing job, complete it first to dispose resources properly
                 var mesh = m_Handle.GetResult().Mesh;
                 mesh.DestroyObject();
-                m_Handle = default;
+                m_Handle = null;
             }
 
             m_Handle = MeshBuildPipeline.ScheduleBuild(m_Graph, context, meshName);
-            m_HasScheduled = true;
         }
     }
 
@@ -74,14 +72,21 @@ public sealed class MeshGraphAuthoring : MonoBehaviour {
         }
     }
 
-    private void Update() {
-        if (!m_HasScheduled) return;
-        if (m_Handle.IsCompleted) {
-            var handle = m_Handle;
-            m_Handle = default;
-            m_HasScheduled = false;
+    private void OnDisable() {
+        if (m_Handle is not null) {
+            var mesh = m_Handle.GetResult().Mesh;
+            mesh.DestroyObject();
+            m_Handle = null;
+        }
 
-            var result = handle.GetResult();
+        Clear();
+    }
+
+    private void Update() {
+        if (m_Handle is null) return;
+        if (m_Handle.IsCompleted) {
+            var result = m_Handle.GetResult();
+            m_Handle = null;
             ApplyResult(result.Mesh, result.Materials);
         }
     }

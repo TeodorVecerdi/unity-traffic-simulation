@@ -1,6 +1,6 @@
 ﻿using Sirenix.OdinInspector;
+using TrafficSimulation.Geometry.Build;
 using TrafficSimulation.Geometry.Data;
-using TrafficSimulation.Geometry.Graph;
 using TrafficSimulation.Geometry.Helpers;
 using Unity.Burst;
 using Unity.Collections;
@@ -13,117 +13,90 @@ using ReadOnlyAttribute = Unity.Collections.ReadOnlyAttribute;
 namespace TrafficSimulation.Geometry.Generators;
 
 [Serializable]
-public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator, IDisposable {
+public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator {
     [SerializeField, Required] private Polyline m_Polyline = null!;
     [SerializeField, Required] private SplineContainer m_SplineContainer = null!;
     [Space]
     [SerializeField] private float m_MaxError = 0.2f;
-    [SerializeField] private float m_MaxStep = 50.0f;
-    [SerializeField] private bool m_FixedUp = true;
-    [SerializeField] private float3 m_InitialUp = math.up();
-
-    private int m_CachedVertexCount = -1;
-    private int m_CachedIndexCount = -1;
-    private NativeArray<Frame> m_CachedFrames;
-    private NativeArray<float3> m_PolylinePoints;
-    private NativeArray<float2> m_PolylineSegmentDirections;
-    private NativeArray<bool> m_PolylineEmitEdges;
+    [SerializeField] private bool m_WindingClockwise;
 
     public override bool Validate() {
         return m_Polyline != null
             && m_Polyline.Points.Count >= 2
             && m_SplineContainer != null
             && m_SplineContainer.Spline.Count >= 2
-            && m_MaxError > 0.0f
-            && m_MaxStep > 0.0f
-            && math.lengthsq(m_InitialUp) > 1e-6f;
+            && m_MaxError > 0.0f;
     }
 
-    public override void GetCounts(in MeshGenerationContext context, out int vertexCount, out int indexCount) {
-        // Dispose any previous allocations
-        Dispose();
-
-        var positions = new NativeList<float4>(Allocator.Temp);
-        var tangents = new NativeList<float4>(Allocator.Temp);
-        SplineSamplingUtility.AdaptiveSample(m_SplineContainer.Spline, ref positions, ref tangents, m_MaxError, m_MaxStep);
-
-        var frames = new NativeArray<Frame>(positions.Length, Allocator.TempJob);
-        var positionsArray = positions.AsArray();
-        var tangentsArray = tangents.AsArray();
-        FrameBuilder.BuildFramesFromPolyline(in positionsArray, in tangentsArray, math.normalize(m_InitialUp), m_FixedUp, ref frames);
-        m_CachedFrames = frames;
-
-        positions.Dispose();
-        tangents.Dispose();
-
-        var (points, emitEdges) = m_Polyline.GetGeometry();
-        (m_CachedVertexCount, m_CachedIndexCount, _) = PolylineExtrusionHelper.CalculateExtrusionCounts(points.Count, frames.Length, false, emitEdges);
-        vertexCount = m_CachedVertexCount;
-        indexCount = m_CachedIndexCount;
-
-        m_PolylinePoints = new NativeArray<float3>(points.ToArray(), Allocator.TempJob);
-        m_PolylineEmitEdges = new NativeArray<bool>(emitEdges.ToArray(), Allocator.TempJob);
-        m_PolylineSegmentDirections = new NativeArray<float2>(points.Count, Allocator.TempJob);
+    public override void EstimateCounts(in MeshGenerationContext context, out int vertexCount, out int indexCount) {
+        var rings = (int)(m_SplineContainer.Spline.GetLength() / 10.0f);
+        var ringSize = math.max(2, m_Polyline.Points.Count);
+        vertexCount = rings * ringSize;
+        indexCount = (rings - 1) * (ringSize - 1) * 6;
     }
 
-    public override JobHandle ScheduleFill(in MeshGenerationContext context, in MeshBufferSlice bufferSlice, JobHandle dependency) {
+    public override JobHandle ScheduleGenerate(in MeshGenerationContext context, GeometryWriter writer, JobHandle dependency) {
+        var frameList = new NativeList<Frame>(Allocator.Temp);
+        SplineSampler.Sample(m_SplineContainer.Spline, m_MaxError, ref frameList);
+
+        var frames = new NativeArray<Frame>(frameList.Length, Allocator.TempJob);
+        frames.CopyFrom(frameList.AsArray());
+        frameList.Dispose();
+
+        var points = m_Polyline.GetGeometry();
+        var polylinePoints = new NativeArray<float3>(points.Positions.ToArray(), Allocator.TempJob);
+        var emitEdges = new NativeArray<bool>(points.EmitEdges.ToArray(), Allocator.TempJob);
+        var segmentDirections = new NativeArray<float2>(polylinePoints.Length, Allocator.TempJob);
+
         var job = new ExtrudeJob {
-            Frames = m_CachedFrames,
-            PolylinePoints = m_PolylinePoints,
-            PolylineEmitEdges = m_PolylineEmitEdges,
-            PolylineSegmentDirections = m_PolylineSegmentDirections,
-            BufferSlice = bufferSlice,
+            Frames = frames,
+            PolylinePoints = polylinePoints,
+            PolylineEmitEdges = emitEdges,
+            PolylineSegmentDirections = segmentDirections,
             LocalToWorld = m_SplineContainer.transform.localToWorldMatrix,
+            Writer = writer,
+            WindingClockwise = m_WindingClockwise,
         };
-        return job.Schedule(dependency);
-    }
 
-    public void Dispose() {
-        if (m_CachedFrames.IsCreated) m_CachedFrames.Dispose();
-        if (m_PolylinePoints.IsCreated) m_PolylinePoints.Dispose();
-        if (m_PolylineEmitEdges.IsCreated) m_PolylineEmitEdges.Dispose();
-        if (m_PolylineSegmentDirections.IsCreated) m_PolylineSegmentDirections.Dispose();
+        return job.Schedule(dependency);
     }
 
     [BurstCompile]
     private struct ExtrudeJob : IJob {
-        [ReadOnly] public NativeArray<Frame> Frames;
-        [ReadOnly] public NativeArray<float3> PolylinePoints;
-        [ReadOnly] public NativeArray<bool> PolylineEmitEdges;
-        public NativeArray<float2> PolylineSegmentDirections;
-        public MeshBufferSlice BufferSlice;
+        [DeallocateOnJobCompletion, ReadOnly] public NativeArray<Frame> Frames;
+        [DeallocateOnJobCompletion, ReadOnly] public NativeArray<float3> PolylinePoints;
+        [DeallocateOnJobCompletion, ReadOnly] public NativeArray<bool> PolylineEmitEdges;
+        [DeallocateOnJobCompletion] public NativeArray<float2> PolylineSegmentDirections;
         public float4x4 LocalToWorld;
+        public GeometryWriter Writer;
+        public bool WindingClockwise;
 
         public void Execute() {
-            var vertices = BufferSlice.GetVertices();
-            var indices = BufferSlice.GetIndices();
-            var indexOffset = 0;
-
             var ringSize = PolylinePoints.Length;
             var ringCount = Frames.Length;
 
-            // Build 2D segment directions
+            // 2D segment directions (for normals)
             for (var i = 0; i < ringSize - 1; i++) {
-                var d = PolylinePoints[i + 1].xy - PolylinePoints[i].xy;
-                PolylineSegmentDirections[i] = math.normalizesafe(d, new float2(1, 0));
+                // WindingClockwise swaps direction to maintain consistent normal orientation
+                var direction = WindingClockwise
+                    ? PolylinePoints[i].xy - PolylinePoints[i + 1].xy
+                    : PolylinePoints[i + 1].xy - PolylinePoints[i].xy;
+                PolylineSegmentDirections[i] = math.normalizesafe(direction, new float2(1, 0));
             }
 
-            // Normal matrix (handles non-uniform scale)
             var normalMatrix = math.transpose(math.inverse((float3x3)LocalToWorld));
 
             for (var i = 0; i < ringCount; i++) {
                 var frame = Frames[i];
-                var vertexOffset = i * ringSize;
+                var rowBase = Writer.Vertices.Length; // base for this ring
 
-                // Write vertices
+                // Write ring vertices
                 for (var j = 0; j < ringSize; j++) {
-                    // Position
                     var point = PolylinePoints[j].xy;
                     var position = frame.Position + point.x * frame.Binormal + point.y * frame.Normal;
                     position.w = 1f;
                     var worldPosition = math.mul(LocalToWorld, position).xyz;
 
-                    // Normal
                     float2 dir2D;
                     if (j == 0) {
                         dir2D = PolylineSegmentDirections[0];
@@ -136,38 +109,30 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator, IDisposabl
 
                     var along = frame.Tangent.xyz;
                     var across = frame.Binormal.xyz * dir2D.x + frame.Normal.xyz * dir2D.y;
-
-                    // Build normal in local space, then transform with normal matrix
                     var localNormal = math.normalize(math.cross(along, across));
                     var normal = math.normalize(math.mul(normalMatrix, localNormal));
 
-                    vertices[vertexOffset + j] = new MeshVertex {
+                    var uv = new float2(
+                        (float)j / math.max(1, ringSize - 1),
+                        (float)i / math.max(1, ringCount - 1)
+                    );
+
+                    Writer.WriteVertex(new MeshVertex {
                         Position = worldPosition,
                         Normal = normal,
-                        UV = new float2((float)j / (ringSize - 1), (float)i / (ringCount - 1)),
-                    };
+                        UV = uv,
+                    });
                 }
 
                 // Link rings with quads
                 if (i == 0)
                     continue;
 
-                var previousVertexOffset = vertexOffset - ringSize;
-                for (var j = 0; j < ringSize - 1; j++) {
-                    if (!PolylineEmitEdges[j])
-                        continue;
-                    var v0 = previousVertexOffset + j;
-                    var v1 = previousVertexOffset + j + 1;
-                    var v2 = vertexOffset + j;
-                    var v3 = vertexOffset + j + 1;
-
-                    indices[indexOffset + 0] = v0;
-                    indices[indexOffset + 1] = v2;
-                    indices[indexOffset + 2] = v1;
-                    indices[indexOffset + 3] = v1;
-                    indices[indexOffset + 4] = v2;
-                    indices[indexOffset + 5] = v3;
-                    indexOffset += 6;
+                var prevBase = rowBase - ringSize;
+                if (WindingClockwise) {
+                    Writer.WriteRingStitch(prevBase, rowBase, ringSize, closed: false, PolylineEmitEdges);
+                } else {
+                    Writer.WriteRingStitchCCW(prevBase, rowBase, ringSize, closed: false, PolylineEmitEdges);
                 }
             }
         }
