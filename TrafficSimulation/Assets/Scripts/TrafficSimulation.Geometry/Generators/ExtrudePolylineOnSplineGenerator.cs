@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using Sirenix.OdinInspector;
+﻿using Sirenix.OdinInspector;
 using TrafficSimulation.Geometry.Build;
 using TrafficSimulation.Geometry.Data;
 using TrafficSimulation.Geometry.Helpers;
@@ -70,7 +69,6 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator {
         [DeallocateOnJobCompletion] public NativeArray<float2> PolylineSegmentDirections;
         public float4x4 LocalToWorld;
         public GeometryWriter Writer;
-        [MarshalAs(UnmanagedType.U1)]
         public bool WindingClockwise;
 
         public void Execute() {

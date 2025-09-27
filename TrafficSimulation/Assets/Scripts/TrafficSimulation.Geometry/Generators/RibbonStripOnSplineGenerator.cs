@@ -1,5 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using Sirenix.OdinInspector;
+﻿using Sirenix.OdinInspector;
 using TrafficSimulation.Geometry.Build;
 using TrafficSimulation.Geometry.Data;
 using TrafficSimulation.Geometry.Helpers;
@@ -169,7 +168,6 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
 
         // Geometry
         public float Width; // meters
-        [MarshalAs(UnmanagedType.U1)]
         public bool WindingClockwise;
         public float3 LocalOffset;
 
