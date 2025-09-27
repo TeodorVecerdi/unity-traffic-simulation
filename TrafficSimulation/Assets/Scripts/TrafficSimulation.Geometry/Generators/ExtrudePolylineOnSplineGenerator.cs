@@ -130,14 +130,10 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator {
                     continue;
 
                 var prevBase = rowBase - ringSize;
-                for (var j = 0; j < ringSize - 1; j++) {
-                    if (!PolylineEmitEdges[j])
-                        continue;
-                    if (WindingClockwise) {
-                        Writer.WriteRingStitch(prevBase, rowBase, ringSize, closed: false);
-                    } else {
-                        Writer.WriteRingStitchCCW(prevBase, rowBase, ringSize, closed: false);
-                    }
+                if (WindingClockwise) {
+                    Writer.WriteRingStitch(prevBase, rowBase, ringSize, closed: false, PolylineEmitEdges);
+                } else {
+                    Writer.WriteRingStitchCCW(prevBase, rowBase, ringSize, closed: false, PolylineEmitEdges);
                 }
             }
         }
