@@ -1,4 +1,5 @@
-﻿using Sirenix.OdinInspector;
+﻿using System.Runtime.InteropServices;
+using Sirenix.OdinInspector;
 using TrafficSimulation.Geometry.Build;
 using TrafficSimulation.Geometry.Data;
 using TrafficSimulation.Geometry.Helpers;
@@ -18,37 +19,30 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator {
     [SerializeField, Required] private SplineContainer m_SplineContainer = null!;
     [Space]
     [SerializeField] private float m_MaxError = 0.2f;
-    [SerializeField] private float m_MaxStep = 50.0f;
-    [SerializeField] private bool m_FixedUp = true;
-    [SerializeField] private float3 m_InitialUp = math.up();
+    [SerializeField] private bool m_WindingClockwise;
 
     public override bool Validate() {
         return m_Polyline != null
             && m_Polyline.Points.Count >= 2
             && m_SplineContainer != null
             && m_SplineContainer.Spline.Count >= 2
-            && m_MaxError > 0.0f
-            && m_MaxStep > 0.0f
-            && math.lengthsq(m_InitialUp) > 1e-6f;
+            && m_MaxError > 0.0f;
     }
 
     public override void EstimateCounts(in MeshGenerationContext context, out int vertexCount, out int indexCount) {
-        var rings = math.max(16, (int)math.ceil(100f / m_MaxStep));
+        var rings = (int)(m_SplineContainer.Spline.GetLength() / 10.0f);
         var ringSize = math.max(2, m_Polyline.Points.Count);
         vertexCount = rings * ringSize;
         indexCount = (rings - 1) * (ringSize - 1) * 6;
     }
 
     public override JobHandle ScheduleGenerate(in MeshGenerationContext context, GeometryWriter writer, JobHandle dependency) {
-        var positions = new NativeList<float4>(Allocator.TempJob);
-        var tangents = new NativeList<float4>(Allocator.TempJob);
-        SplineSamplingUtility.AdaptiveSample(m_SplineContainer.Spline, ref positions, ref tangents, m_MaxError, m_MaxStep);
+        var frameList = new NativeList<Frame>(Allocator.Temp);
+        SplineSampler.Sample(m_SplineContainer.Spline, m_MaxError, ref frameList);
 
-        var frames = new NativeArray<Frame>(positions.Length, Allocator.TempJob);
-        FrameBuilder.BuildFramesFromPolyline(positions.AsArray(), tangents.AsArray(), math.normalize(m_InitialUp), m_FixedUp, ref frames);
-
-        positions.Dispose();
-        tangents.Dispose();
+        var frames = new NativeArray<Frame>(frameList.Length, Allocator.TempJob);
+        frames.CopyFrom(frameList.AsArray());
+        frameList.Dispose();
 
         var points = m_Polyline.GetGeometry();
         var polylinePoints = new NativeArray<float3>(points.Positions.ToArray(), Allocator.TempJob);
@@ -62,6 +56,7 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator {
             PolylineSegmentDirections = segmentDirections,
             LocalToWorld = m_SplineContainer.transform.localToWorldMatrix,
             Writer = writer,
+            WindingClockwise = m_WindingClockwise,
         };
 
         return job.Schedule(dependency);
@@ -75,6 +70,8 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator {
         [DeallocateOnJobCompletion] public NativeArray<float2> PolylineSegmentDirections;
         public float4x4 LocalToWorld;
         public GeometryWriter Writer;
+        [MarshalAs(UnmanagedType.U1)]
+        public bool WindingClockwise;
 
         public void Execute() {
             var ringSize = PolylinePoints.Length;
@@ -82,7 +79,9 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator {
 
             // 2D segment directions (for normals)
             for (var i = 0; i < ringSize - 1; i++) {
-                var direction = PolylinePoints[i + 1].xy - PolylinePoints[i].xy;
+                var direction = WindingClockwise
+                    ? PolylinePoints[i].xy - PolylinePoints[i + 1].xy
+                    : PolylinePoints[i + 1].xy - PolylinePoints[i].xy;
                 PolylineSegmentDirections[i] = math.normalizesafe(direction, new float2(1, 0));
             }
 
@@ -134,7 +133,11 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator {
                 for (var j = 0; j < ringSize - 1; j++) {
                     if (!PolylineEmitEdges[j])
                         continue;
-                    Writer.WriteRingStitchCCW(prevBase, rowBase, ringSize, closed: false);
+                    if (WindingClockwise) {
+                        Writer.WriteRingStitch(prevBase, rowBase, ringSize, closed: false);
+                    } else {
+                        Writer.WriteRingStitchCCW(prevBase, rowBase, ringSize, closed: false);
+                    }
                 }
             }
         }
