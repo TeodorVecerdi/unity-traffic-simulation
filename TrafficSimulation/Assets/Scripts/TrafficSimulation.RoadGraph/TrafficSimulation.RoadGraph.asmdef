@@ -1,0 +1,21 @@
+{
+    "name": "TrafficSimulation.RoadGraph",
+    "rootNamespace": "",
+    "references": [
+        "TrafficSimulation.Core",
+        "UniTask",
+        "Unity.Burst",
+        "Unity.Collections",
+        "Unity.Mathematics",
+        "Unity.Splines"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
