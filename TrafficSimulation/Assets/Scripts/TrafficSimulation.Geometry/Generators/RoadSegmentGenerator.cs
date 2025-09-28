@@ -18,7 +18,8 @@ public sealed class RoadSegmentGenerator : MeshGenerator {
     [SerializeField, Required] private RoadSegmentAuthoring m_RoadSegment = null!;
     [SerializeField, Required] private SplineContainer m_SplineContainer = null!;
     [SerializeField] private bool m_SplitLanes;
-    [SerializeField] private float m_MaxError = 0.2f;
+    [SerializeField] private float m_MaxErrorRoads = 0.05f;
+    [SerializeField] private float m_MaxErrorMarkings = 0.02f;
     [SerializeField] private WindingOrder m_RoadWinding;
     [SerializeField] private WindingOrder m_MarkingsWinding;
 
@@ -26,7 +27,9 @@ public sealed class RoadSegmentGenerator : MeshGenerator {
         return m_RoadSegment != null
             && m_RoadSegment.RoadSegment.Lanes.Count >= 1
             && m_SplineContainer != null
-            && m_SplineContainer.Spline.Count >= 2;
+            && m_SplineContainer.Spline.Count >= 2
+            && m_MaxErrorRoads > 0.0f
+            && m_MaxErrorMarkings > 0.0f;
     }
 
     public override int GetSubMeshCount() {
@@ -45,7 +48,7 @@ public sealed class RoadSegmentGenerator : MeshGenerator {
             return dependency;
         }
 
-        var maxError = math.max(0.005f, m_MaxError);
+        var maxError = math.max(0.005f, m_MaxErrorRoads);
         var frames = SplineSamplingJobHelper.SampleSpline(m_SplineContainer.Spline, maxError, Allocator.TempJob);
         var polylinePoints = new NativeArray<float3>(points.Positions.ToArray(), Allocator.TempJob);
         var emitEdges = new NativeArray<bool>(points.EmitEdges.ToArray(), Allocator.TempJob);
@@ -83,8 +86,8 @@ public sealed class RoadSegmentGenerator : MeshGenerator {
         var markingDashedLength = m_RoadSegment.RoadMarkingConfiguration.DashedLength;
         var markingDashedGapLength = m_RoadSegment.RoadMarkingConfiguration.DashedGapLength;
         var sidewalkWidth = m_RoadSegment.SidewalkConfiguration.Width;
+        var maxError = math.max(0.005f, m_MaxErrorMarkings);
 
-        var maxError = math.max(0.005f, m_MaxError);
         var anyDashed = m_RoadSegment.RoadSegment.Lanes.Exists(lane => lane.LeftMarking == RoadMarkingType.Dashed || lane.RightMarking == RoadMarkingType.Dashed);
         var dashedFrames = anyDashed
             ? SplineSamplingJobHelper.SampleFramesForRibbon(m_SplineContainer.Spline, Allocator.TempJob, maxError, markingDashedLength, markingDashedGapLength)
@@ -105,6 +108,7 @@ public sealed class RoadSegmentGenerator : MeshGenerator {
                 currentX -= sidewalkWidth;
             }
 
+            // Draw the right marking
             if (lane.RightMarking is not RoadMarkingType.None) {
                 var isDashed = lane.RightMarking is RoadMarkingType.Dashed;
 
@@ -120,11 +124,13 @@ public sealed class RoadSegmentGenerator : MeshGenerator {
                 var dashLength = isDashed ? markingDashedLength : 0.0f;
                 var gapLength = isDashed ? markingDashedGapLength : 0.0f;
                 var frames = isDashed ? dashedFrames : solidFrames;
-                ScheduleJob(frames, currentX + offset, dashLength, gapLength, ref lastJob);
+                ScheduleMarkingJob(frames, currentX + offset, dashLength, gapLength, ref lastJob);
             }
 
+            // Move to the other side of the lane
             currentX -= lane.Width;
 
+            // Draw the left marking
             if (lane.LeftMarking is not RoadMarkingType.None) {
                 var isDashed = lane.LeftMarking is RoadMarkingType.Dashed;
 
@@ -140,7 +146,7 @@ public sealed class RoadSegmentGenerator : MeshGenerator {
                 var dashLength = isDashed ? markingDashedLength : 0.0f;
                 var gapLength = isDashed ? markingDashedGapLength : 0.0f;
                 var frames = isDashed ? dashedFrames : solidFrames;
-                ScheduleJob(frames, currentX + offset, dashLength, gapLength, ref lastJob);
+                ScheduleMarkingJob(frames, currentX + offset, dashLength, gapLength, ref lastJob);
             }
         }
 
@@ -165,14 +171,14 @@ public sealed class RoadSegmentGenerator : MeshGenerator {
 
         return;
 
-        void ScheduleJob(NativeArray<Frame> frames, float positionX, float dashLength, float gapLength, ref JobHandle lastJob) {
+        void ScheduleMarkingJob(NativeArray<Frame> frames, float positionX, float dashLength, float gapLength, ref JobHandle lastJob) {
             var job = new RibbonStripJob {
                 Frames = frames,
                 Width = markingWidth,
                 OnLength = dashLength,
                 OffLength = gapLength,
                 Phase = 0.0f,
-                LocalOffset = new float3(positionX, 0.01f, 0.0f), // Slightly above the road surface to avoid z-fighting
+                LocalOffset = new float3(positionX, 0.0075f, 0.0f), // Slightly above the road surface to avoid z-fighting
                 LocalToWorld = m_SplineContainer.transform.localToWorldMatrix,
                 Writer = writer,
                 WindingOrder = m_MarkingsWinding,
@@ -196,7 +202,7 @@ public sealed class RoadSegmentGenerator : MeshGenerator {
 
         if (m_SplitLanes)
             return GenerateSplitLanes(roadWidth);
-        return GenerateUnifiedRoad(roadWidth);
+        return GenerateUnifiedLanes(roadWidth);
     }
 
     private (List<float3> Positions, List<bool> EmitEdges) GenerateSplitLanes(float roadWidth) {
@@ -247,7 +253,7 @@ public sealed class RoadSegmentGenerator : MeshGenerator {
         return Polyline.GetGeometry(points);
     }
 
-    private (List<float3> Positions, List<bool> EmitEdges) GenerateUnifiedRoad(float roadWidth) {
+    private (List<float3> Positions, List<bool> EmitEdges) GenerateUnifiedLanes(float roadWidth) {
         var halfWidth = roadWidth * 0.5f;
         var sidewalkCurbHeight = m_RoadSegment.SidewalkConfiguration.CurbHeight;
         var sidewalkWidth = m_RoadSegment.SidewalkConfiguration.Width;
