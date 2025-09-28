@@ -35,14 +35,9 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator {
     }
 
     public override JobHandle ScheduleGenerate(in MeshGenerationContext context, GeometryWriter writer, JobHandle dependency) {
-        var frameList = new NativeList<Frame>(Allocator.Temp);
-        SplineSampler.Sample(m_SplineContainer.Spline, m_MaxError, ref frameList);
-
-        var frames = new NativeArray<Frame>(frameList.Length, Allocator.TempJob);
-        frames.CopyFrom(frameList.AsArray());
-        frameList.Dispose();
-
         var points = Polyline.GetGeometry(m_Polyline.Points);
+
+        var frames = SplineSamplingJobHelper.SampleSpline(m_SplineContainer.Spline, m_MaxError, Allocator.TempJob);
         var polylinePoints = new NativeArray<float3>(points.Positions.ToArray(), Allocator.TempJob);
         var emitEdges = new NativeArray<bool>(points.EmitEdges.ToArray(), Allocator.TempJob);
         var segmentDirections = new NativeArray<float2>(polylinePoints.Length, Allocator.TempJob);
