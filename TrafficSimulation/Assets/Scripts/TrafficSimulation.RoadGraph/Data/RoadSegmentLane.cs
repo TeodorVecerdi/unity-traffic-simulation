@@ -4,7 +4,7 @@ using UnityEngine;
 namespace TrafficSimulation.RoadGraph.Data;
 
 [Serializable]
-public struct RoadLaneSegment() {
+public struct RoadSegmentLane() {
     [SerializeField, Unit(Units.Meter)] public float Width = 3.0f;
     [SerializeField] public LaneDirection Direction = LaneDirection.Forward;
     [SerializeField] public RoadMarkingType LeftMarking = RoadMarkingType.None;

@@ -6,5 +6,5 @@ namespace TrafficSimulation.RoadGraph.Data;
 [Serializable]
 public struct RoadSegment() {
     [LabelText("Lanes (Right to Left)")]
-    [SerializeField, Required] public List<RoadLaneSegment> Lanes = [];
+    [SerializeField, Required] public List<RoadSegmentLane> Lanes = [];
 }
