@@ -34,7 +34,7 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator {
         indexCount = (rings - 1) * (ringSize - 1) * 6;
     }
 
-    public override JobHandle ScheduleGenerate(in MeshGenerationContext context, GeometryWriter writer, JobHandle dependency) {
+    public override JobHandle ScheduleGenerate(in MeshGenerationContext context, List<GeometryWriter> writers, JobHandle dependency) {
         var points = Polyline.GetGeometry(m_Polyline.Points);
 
         var frames = SplineSamplingJobHelper.SampleSpline(m_SplineContainer.Spline, m_MaxError, Allocator.TempJob);
@@ -48,7 +48,7 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator {
             PolylineEmitEdges = emitEdges,
             PolylineSegmentDirections = segmentDirections,
             LocalToWorld = m_SplineContainer.transform.localToWorldMatrix,
-            Writer = writer,
+            Writer = writers[0],
             WindingClockwise = m_WindingClockwise,
         }.Schedule(dependency);
 

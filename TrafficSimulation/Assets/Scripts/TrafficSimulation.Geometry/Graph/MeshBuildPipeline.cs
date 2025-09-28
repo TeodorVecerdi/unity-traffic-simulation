@@ -36,7 +36,7 @@ public static class MeshBuildPipeline {
     /// <returns>A <see cref="MeshBuildHandle"/> containing the job handle, writable mesh data, resulting mesh instance, and the associated materials.</returns>
     public static MeshBuildHandle ScheduleBuild(MeshGraph graph, in MeshGenerationContext context, string meshName = "Mesh") {
         var layers = graph.Layers
-            .Where(l => l is { Enabled: true } && l.Generator != null! && l.Material != null!)
+            .Where(l => l is { Enabled: true, Materials.Count: > 0 } && l.Generator != null! && l.Materials.All(m => m != null))
             .ToList();
         if (layers.Count == 0) {
             return MeshBuildHandle.Empty(meshName);
@@ -53,11 +53,21 @@ public static class MeshBuildPipeline {
             if (vertexCount is 0) vertexCount = GeometryChunk.DefaultVertexCapacity;
             if (indexCount is 0) indexCount = GeometryChunk.DefaultIndexCapacity;
 
+            var subMeshCount = layer.Generator.GetSubMeshCount();
+            if (subMeshCount < 1)
+                subMeshCount = 1;
+
+            var chunks = new List<GeometryChunk>(subMeshCount);
+            var writers = new List<GeometryWriter>(subMeshCount);
+            for (var j = 0; j < subMeshCount; j++) {
+                var chunk = new GeometryChunk(Allocator.TempJob, vertexCount, indexCount);
+                chunks.Add(chunk);
+                writers.Add(new GeometryWriter(chunk.Vertices, chunk.Indices));
+            }
+
             // Setup work item
-            var chunk = new GeometryChunk(Allocator.TempJob, vertexCount, indexCount);
-            var writer = new GeometryWriter(chunk.Vertices, chunk.Indices);
-            var handle = layer.Generator.ScheduleGenerate(context, writer, default);
-            var workItem = new LayerWorkItem(layer, chunk, handle);
+            var handle = layer.Generator.ScheduleGenerate(context, writers, default);
+            var workItem = new LayerWorkItem(layer, chunks, handle);
 
             perLayer.Add(workItem);
             handles[i] = handle;

@@ -41,16 +41,26 @@ public sealed class MeshBuildHandle {
 
         try {
             foreach (var workItem in m_WorkItems) {
-                var key = new SurfaceKey(workItem.Layer.Material);
+                for (var i = 0; i < workItem.Chunks.Count; i++) {
+                    var chunk = workItem.Chunks[i];
 
-                if (!surfaceMap.TryGetValue(key, out var surfaceIndex)) {
-                    surfaceIndex = surfaces.Count;
-                    surfaceMap.Add(key, surfaceIndex);
-                    surfaces.Add(new SurfaceAggregator(workItem.Layer.Material, Allocator.Temp));
+                    // Skip empty chunks
+                    if (chunk.Vertices.Length == 0 || chunk.Indices.Length == 0) {
+                        continue;
+                    }
+
+                    var materialIndex = i < workItem.Layer.Materials.Count ? i : workItem.Layer.Materials.Count - 1;
+                    var material = workItem.Layer.Materials[materialIndex];
+                    var key = new SurfaceKey(material);
+
+                    if (!surfaceMap.TryGetValue(key, out var surfaceIndex)) {
+                        surfaceIndex = surfaces.Count;
+                        surfaceMap.Add(key, surfaceIndex);
+                        surfaces.Add(new SurfaceAggregator(material, Allocator.Temp));
+                    }
+
+                    surfaces[surfaceIndex].AppendChunk(ref chunk.Vertices, ref chunk.Indices);
                 }
-
-                var chunk = workItem.Chunk;
-                surfaces[surfaceIndex].AppendChunk(ref chunk.Vertices, ref chunk.Indices);
             }
 
             // 3) Allocate MeshData once with exact counts
