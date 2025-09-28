@@ -3,11 +3,8 @@
     "rootNamespace": "",
     "references": [
         "TrafficSimulation.Core",
-        "LitMotion",
-        "LitMotion.Extensions",
+        "TrafficSimulation.RoadGraph",
         "UniTask",
-        "Vecerdi.Extensions.Logging",
-        "Vecerdi.Extensions.DependencyInjection",
         "Unity.Burst",
         "Unity.Collections",
         "Unity.Mathematics",
