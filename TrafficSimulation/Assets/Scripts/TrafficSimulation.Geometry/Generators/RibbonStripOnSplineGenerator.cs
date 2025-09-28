@@ -61,17 +61,7 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
     public override JobHandle ScheduleGenerate(in MeshGenerationContext context, List<GeometryWriter> writers, JobHandle dependency) {
         var spline = m_SplineContainer.Spline;
 
-        var frameList = new NativeList<Frame>(Allocator.Temp);
-
-        if (m_OnLength <= 0.0f || m_OffLength <= 0.0f) {
-            SplineSampler.Sample(spline, m_MaxError, ref frameList);
-        } else {
-            SamplePreciseFrames(spline, ref frameList);
-        }
-
-        var frames = new NativeArray<Frame>(frameList.Length, Allocator.TempJob);
-        frames.CopyFrom(frameList.AsArray());
-        frameList.Dispose();
+        var frames = SplineSamplingJobHelper.SampleFramesForRibbon(spline, Allocator.TempJob, m_MaxError, m_OnLength, m_OffLength, m_Phase);
 
         var job = new RibbonStripJob {
             Frames = frames,
@@ -89,82 +79,5 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
             .Schedule(job);
 
         return cleanupJob;
-    }
-
-    private void SamplePreciseFrames(Spline spline, ref NativeList<Frame> frameList) {
-        var totalLength = spline.GetLength();
-        var cycleLength = m_OnLength + m_OffLength;
-
-        // Collect transition points in arc-length space
-        var ts = new NativeList<float>(Allocator.Temp);
-
-        // Find first cycle start after (Phase mod cycleLength), cover [-cycleLength, totalLength + cycleLength]
-        var effectivePhase = m_Phase % cycleLength;
-        if (effectivePhase < 0.0f)
-            effectivePhase += cycleLength;
-        var s = effectivePhase - cycleLength; // start one cycle before to cover negatives
-
-        while (s < totalLength + cycleLength) {
-            var onEnd = s + m_OnLength;
-            var offEnd = onEnd + m_OffLength;
-
-            // Clamp to [0, totalLength] and add if within range
-            if (s >= 0.0f && s <= totalLength) {
-                ts.Add(s / totalLength);
-            }
-
-            if (onEnd >= 0.0f && onEnd <= totalLength) {
-                ts.Add(onEnd / totalLength);
-            }
-
-            if (offEnd >= 0.0f && offEnd <= totalLength) {
-                ts.Add(offEnd / totalLength);
-            }
-
-            s += cycleLength;
-        }
-
-        // Ensure the domain endpoints are sampled
-        ts.Add(0.0f);
-        ts.Add(1.0f - math.EPSILON);
-
-        // Sort unique ts and evaluate to build precise frames
-        ts.Sort();
-        RemoveDuplicates(ref ts);
-
-        frameList.Resize(ts.Length, NativeArrayOptions.ClearMemory);
-
-        // Sample frames
-        for (var i = 0; i < ts.Length; i++) {
-            var t = ts[i];
-            var pos = spline.EvaluatePosition(t);
-            var tangent = spline.EvaluateTangent(t);
-            tangent = math.normalizesafe(tangent, new float3(0.0f, 0.0f, 1.0f));
-
-            GeometryUtils.BuildOrthonormalBasis(in tangent, math.up(), out var right, out var up);
-
-            frameList[i] = new Frame {
-                Position = new float4(pos, 1.0f),
-                Tangent = new float4(tangent, 0.0f),
-                Normal = new float4(up, 0.0f),
-                Binormal = new float4(right, 0.0f),
-            };
-        }
-
-        ts.Dispose();
-    }
-
-    private static void RemoveDuplicates(ref NativeList<float> list, float epsilon = 1e-5f) {
-        if (list.Length <= 1) return;
-
-        var write = 1;
-        for (var read = 1; read < list.Length; read++) {
-            if (math.abs(list[read] - list[write - 1]) > epsilon) {
-                list[write] = list[read];
-                write++;
-            }
-        }
-
-        list.Length = write;
     }
 }
