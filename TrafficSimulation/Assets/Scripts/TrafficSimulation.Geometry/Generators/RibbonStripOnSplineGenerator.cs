@@ -2,6 +2,7 @@
 using TrafficSimulation.Geometry.Build;
 using TrafficSimulation.Geometry.Data;
 using TrafficSimulation.Geometry.Helpers;
+using TrafficSimulation.Geometry.Jobs;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -84,9 +85,12 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
             LocalOffset = m_LocalOffset,
             LocalToWorld = m_SplineContainer.transform.localToWorldMatrix,
             Writer = writer,
-        };
+        }.Schedule(dependency);
 
-        return job.Schedule(dependency);
+        var cleanupJob = new DisposeNativeArrayJob<Frame> { Array = frames }
+            .Schedule(job);
+
+        return cleanupJob;
     }
 
     private void SamplePreciseFrames(Spline spline, ref NativeList<Frame> frameList) {
@@ -168,7 +172,7 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
 
     [BurstCompile]
     private struct RibbonStripWithGapsJob : IJob {
-        [DeallocateOnJobCompletion, ReadOnly] public NativeArray<Frame> Frames;
+        [ReadOnly] public NativeArray<Frame> Frames;
 
         // Geometry
         public float Width; // meters

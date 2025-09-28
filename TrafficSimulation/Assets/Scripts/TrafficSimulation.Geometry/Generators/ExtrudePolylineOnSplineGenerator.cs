@@ -2,6 +2,7 @@
 using TrafficSimulation.Geometry.Build;
 using TrafficSimulation.Geometry.Data;
 using TrafficSimulation.Geometry.Helpers;
+using TrafficSimulation.Geometry.Jobs;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -56,17 +57,24 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator {
             LocalToWorld = m_SplineContainer.transform.localToWorldMatrix,
             Writer = writer,
             WindingClockwise = m_WindingClockwise,
-        };
+        }.Schedule(dependency);
 
-        return job.Schedule(dependency);
+        var cleanupJob = new DisposeNativeArrayJob<Frame, float3, bool, float2> {
+            Array1 = frames,
+            Array2 = polylinePoints,
+            Array3 = emitEdges,
+            Array4 = segmentDirections,
+        }.Schedule(job);
+
+        return cleanupJob;
     }
 
     [BurstCompile]
     private struct ExtrudeJob : IJob {
-        [DeallocateOnJobCompletion, ReadOnly] public NativeArray<Frame> Frames;
-        [DeallocateOnJobCompletion, ReadOnly] public NativeArray<float3> PolylinePoints;
-        [DeallocateOnJobCompletion, ReadOnly] public NativeArray<bool> PolylineEmitEdges;
-        [DeallocateOnJobCompletion] public NativeArray<float2> PolylineSegmentDirections;
+        [ReadOnly] public NativeArray<Frame> Frames;
+        [ReadOnly] public NativeArray<float3> PolylinePoints;
+        [ReadOnly] public NativeArray<bool> PolylineEmitEdges;
+        public NativeArray<float2> PolylineSegmentDirections;
         public float4x4 LocalToWorld;
         public GeometryWriter Writer;
         public bool WindingClockwise;
