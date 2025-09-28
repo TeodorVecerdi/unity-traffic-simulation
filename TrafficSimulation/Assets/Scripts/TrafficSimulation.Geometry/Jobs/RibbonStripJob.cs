@@ -13,7 +13,7 @@ public struct RibbonStripJob : IJob {
 
     // Geometry
     public float Width; // meters
-    public bool WindingClockwise;
+    public WindingOrder WindingOrder;
     public float3 LocalOffset;
 
     // Dash pattern
@@ -120,7 +120,7 @@ public struct RibbonStripJob : IJob {
                 UV = new float2(1.0f, 1.0f),
             };
 
-            if (WindingClockwise) {
+            if (WindingOrder is WindingOrder.Clockwise) {
                 Writer.WriteStripStep(leftVertex, rightVertex, previousLeftIndex, previousRightIndex, out previousLeftIndex, out previousRightIndex);
             } else {
                 Writer.WriteStripStepCCW(leftVertex, rightVertex, previousLeftIndex, previousRightIndex, out previousLeftIndex, out previousRightIndex);

@@ -17,7 +17,7 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator {
     [SerializeField, Required] private SplineContainer m_SplineContainer = null!;
     [Space]
     [SerializeField] private float m_MaxError = 0.2f;
-    [SerializeField] private bool m_WindingClockwise;
+    [SerializeField] private WindingOrder m_WindingOrder;
 
     public override bool Validate() {
         return m_Polyline != null
@@ -49,7 +49,7 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator {
             PolylineSegmentDirections = segmentDirections,
             LocalToWorld = m_SplineContainer.transform.localToWorldMatrix,
             Writer = writers[0],
-            WindingClockwise = m_WindingClockwise,
+            WindingOrder = m_WindingOrder,
         }.Schedule(dependency);
 
         var cleanupJob = new DisposeNativeArrayJob<Frame, float3, bool, float2> {

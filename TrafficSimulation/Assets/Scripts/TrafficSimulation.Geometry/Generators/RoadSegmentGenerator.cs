@@ -19,8 +19,8 @@ public sealed class RoadSegmentGenerator : MeshGenerator {
     [SerializeField, Required] private SplineContainer m_SplineContainer = null!;
     [SerializeField] private bool m_SplitLanes;
     [SerializeField] private float m_MaxError = 0.2f;
-    [SerializeField] private bool m_RoadWindingClockwise;
-    [SerializeField] private bool m_MarkingsWindingClockwise;
+    [SerializeField] private WindingOrder m_RoadWinding;
+    [SerializeField] private WindingOrder m_MarkingsWinding;
 
     public override bool Validate() {
         return m_RoadSegment != null
@@ -58,7 +58,7 @@ public sealed class RoadSegmentGenerator : MeshGenerator {
             PolylineSegmentDirections = segmentDirections,
             LocalToWorld = m_SplineContainer.transform.localToWorldMatrix,
             Writer = writers[0],
-            WindingClockwise = m_RoadWindingClockwise,
+            WindingOrder = m_RoadWinding,
         }.Schedule(dependency);
 
         var lastJob = dependency;
@@ -175,7 +175,7 @@ public sealed class RoadSegmentGenerator : MeshGenerator {
                 LocalOffset = new float3(positionX, 0.01f, 0.0f), // Slightly above the road surface to avoid z-fighting
                 LocalToWorld = m_SplineContainer.transform.localToWorldMatrix,
                 Writer = writer,
-                WindingClockwise = m_MarkingsWindingClockwise,
+                WindingOrder = m_MarkingsWinding,
             }.Schedule(lastJob);
             lastJob = job;
         }

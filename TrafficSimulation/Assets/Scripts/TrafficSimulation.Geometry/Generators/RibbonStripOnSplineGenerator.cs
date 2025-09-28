@@ -25,7 +25,7 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
 
     [Title("Ribbon")]
     [SerializeField, MinValue(0.001f), Unit(Units.Meter, Units.Millimeter)] private float m_Width = 0.2f;
-    [SerializeField] private bool m_WindingClockwise;
+    [SerializeField] private WindingOrder m_WindingOrder;
 
     [Title("Dash Pattern (Gaps)")]
     [SerializeField, Unit(Units.Meter)]
@@ -66,7 +66,7 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
         var job = new RibbonStripJob {
             Frames = frames,
             Width = m_Width,
-            WindingClockwise = m_WindingClockwise,
+            WindingOrder = m_WindingOrder,
             OnLength = m_OnLength,
             OffLength = m_OffLength,
             Phase = m_Phase,

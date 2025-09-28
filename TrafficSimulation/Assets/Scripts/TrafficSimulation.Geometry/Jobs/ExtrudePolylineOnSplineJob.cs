@@ -15,7 +15,7 @@ public struct ExtrudePolylineOnSplineJob : IJob {
     public NativeArray<float2> PolylineSegmentDirections;
     public float4x4 LocalToWorld;
     public GeometryWriter Writer;
-    public bool WindingClockwise;
+    public WindingOrder WindingOrder;
 
     public void Execute() {
         var ringSize = PolylinePoints.Length;
@@ -23,8 +23,8 @@ public struct ExtrudePolylineOnSplineJob : IJob {
 
         // 2D segment directions (for normals)
         for (var i = 0; i < ringSize - 1; i++) {
-            // WindingClockwise swaps direction to maintain consistent normal orientation
-            var direction = WindingClockwise
+            // WindingOrder.Clockwise swaps direction to maintain consistent normal orientation
+            var direction = WindingOrder is WindingOrder.Clockwise
                 ? PolylinePoints[i].xy - PolylinePoints[i + 1].xy
                 : PolylinePoints[i + 1].xy - PolylinePoints[i].xy;
             PolylineSegmentDirections[i] = math.normalizesafe(direction, new float2(1, 0));
@@ -75,7 +75,7 @@ public struct ExtrudePolylineOnSplineJob : IJob {
                 continue;
 
             var prevBase = rowBase - ringSize;
-            if (WindingClockwise) {
+            if (WindingOrder is WindingOrder.Clockwise) {
                 Writer.WriteRingStitch(prevBase, rowBase, ringSize, closed: false, PolylineEmitEdges);
             } else {
                 Writer.WriteRingStitchCCW(prevBase, rowBase, ringSize, closed: false, PolylineEmitEdges);
