@@ -3,14 +3,14 @@ using Unity.Jobs;
 
 namespace TrafficSimulation.Geometry.Graph;
 
-internal struct LayerWorkItem(MeshGraph.Layer layer, GeometryChunk chunk, JobHandle handle) : IDisposable {
+internal struct LayerWorkItem(MeshGraph.Layer layer, List<GeometryChunk> chunks, JobHandle handle) : IDisposable {
     public readonly MeshGraph.Layer Layer = layer;
-    public GeometryChunk Chunk = chunk;
+    public readonly List<GeometryChunk> Chunks = chunks;
     public JobHandle JobHandle = handle;
 
     public void Dispose() {
         JobHandle.Complete();
-        Chunk.Dispose();
+        Chunks.ForEach(chunk => chunk.Dispose());
         if (Layer.Generator is IDisposable disposable)
             disposable.Dispose();
     }

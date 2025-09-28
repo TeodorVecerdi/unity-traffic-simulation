@@ -24,13 +24,13 @@ public sealed class QuadGenerator : MeshGenerator {
         indexCount = 6;
     }
 
-    public override JobHandle ScheduleGenerate(in MeshGenerationContext context, GeometryWriter geometryWriter, JobHandle dependency) {
+    public override JobHandle ScheduleGenerate(in MeshGenerationContext context, List<GeometryWriter> writers, JobHandle dependency) {
         return new QuadFillJob {
             Width = m_Width,
             Length = m_Length,
             Normal = m_Normal.normalized,
             WindingClockwise = m_WindingClockwise,
-            Writer = geometryWriter,
+            Writer = writers[0],
         }.Schedule(dependency);
     }
 

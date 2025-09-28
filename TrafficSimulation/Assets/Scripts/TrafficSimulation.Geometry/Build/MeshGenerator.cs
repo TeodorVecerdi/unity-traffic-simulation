@@ -9,6 +9,7 @@ public abstract class MeshGenerator {
         indexCount = 0;
     }
 
+    public virtual int GetSubMeshCount() => 1;
     public abstract bool Validate();
-    public abstract JobHandle ScheduleGenerate(in MeshGenerationContext context, GeometryWriter writer, JobHandle dependency);
+    public abstract JobHandle ScheduleGenerate(in MeshGenerationContext context, List<GeometryWriter> writers, JobHandle dependency);
 }

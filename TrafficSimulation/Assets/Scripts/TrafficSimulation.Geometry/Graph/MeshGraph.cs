@@ -12,7 +12,7 @@ public sealed class MeshGraph {
     public sealed class Layer {
         [Required] public string Name = "Layer";
         [Required, SerializeReference] public MeshGenerator Generator = null!;
-        [Required] public Material Material = null!;
+        [Required] public List<Material> Materials = null!;
         public bool Enabled;
     }
 }

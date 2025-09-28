@@ -15,22 +15,22 @@ public sealed class Polyline : MonoBehaviour {
 
     public List<PolylinePoint> Points => m_Points;
 
-    public (List<float3> Positions, List<bool> EmitEdges) GetGeometry() {
-        if (m_Points == null! || m_Points.Count == 0) {
+    public static (List<float3> Positions, List<bool> EmitEdges) GetGeometry(List<PolylinePoint> points) {
+        if (points == null! || points.Count == 0) {
             return ([], []);
         }
 
-        var positions = new List<float3>(m_Points.Count);
-        var emitEdges = new List<bool>(m_Points.Count);
+        var positions = new List<float3>(points.Count);
+        var emitEdges = new List<bool>(points.Count);
 
-        for (var i = 0; i < m_Points.Count; i++) {
-            var p = m_Points[i].Position;
+        for (var i = 0; i < points.Count; i++) {
+            var p = points[i].Position;
 
             // Normal addition
             AddPoint(p);
 
             // Duplicate hard points; edge between duplicates must be skipped
-            if (m_Points[i].HardEdge) {
+            if (points[i].HardEdge) {
                 AddPoint(p, forceSkipEdge: true);
             }
         }

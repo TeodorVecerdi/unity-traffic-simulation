@@ -1,9 +1,8 @@
 {
-    "name": "TrafficSimulation.Geometry",
+    "name": "TrafficSimulation.RoadGraph",
     "rootNamespace": "",
     "references": [
         "TrafficSimulation.Core",
-        "TrafficSimulation.RoadGraph",
         "UniTask",
         "Unity.Burst",
         "Unity.Collections",
