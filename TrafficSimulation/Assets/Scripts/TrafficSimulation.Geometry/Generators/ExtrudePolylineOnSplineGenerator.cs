@@ -43,7 +43,7 @@ public sealed class ExtrudePolylineOnSplineGenerator : MeshGenerator {
         frames.CopyFrom(frameList.AsArray());
         frameList.Dispose();
 
-        var points = m_Polyline.GetGeometry();
+        var points = Polyline.GetGeometry(m_Polyline.Points);
         var polylinePoints = new NativeArray<float3>(points.Positions.ToArray(), Allocator.TempJob);
         var emitEdges = new NativeArray<bool>(points.EmitEdges.ToArray(), Allocator.TempJob);
         var segmentDirections = new NativeArray<float2>(polylinePoints.Length, Allocator.TempJob);
