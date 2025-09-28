@@ -28,7 +28,7 @@ public sealed class RoadSegmentGenerator : MeshGenerator {
             && m_SplineContainer.Spline.Count >= 2;
     }
 
-    public override JobHandle ScheduleGenerate(in MeshGenerationContext context, GeometryWriter writer, JobHandle dependency) {
+    public override JobHandle ScheduleGenerate(in MeshGenerationContext context, List<GeometryWriter> writers, JobHandle dependency) {
         var points = GenerateRoadProfile();
         if (points.Positions.Count < 2) {
             Debug.LogWarning($"{nameof(RoadSegmentGenerator)}: Generated road profile has less than 2 points.");
@@ -46,7 +46,7 @@ public sealed class RoadSegmentGenerator : MeshGenerator {
             PolylineEmitEdges = emitEdges,
             PolylineSegmentDirections = segmentDirections,
             LocalToWorld = m_SplineContainer.transform.localToWorldMatrix,
-            Writer = writer,
+            Writer = writers[0],
             WindingClockwise = m_WindingClockwise,
         }.Schedule(dependency);
 

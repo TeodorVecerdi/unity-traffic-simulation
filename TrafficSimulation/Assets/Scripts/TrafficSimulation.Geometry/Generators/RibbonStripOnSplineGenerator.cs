@@ -60,7 +60,7 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
         indexCount = (int)math.ceil(6.0f * (framesApprox - 1) * duty);
     }
 
-    public override JobHandle ScheduleGenerate(in MeshGenerationContext context, GeometryWriter writer, JobHandle dependency) {
+    public override JobHandle ScheduleGenerate(in MeshGenerationContext context, List<GeometryWriter> writers, JobHandle dependency) {
         var spline = m_SplineContainer.Spline;
 
         var frameList = new NativeList<Frame>(Allocator.Temp);
@@ -84,7 +84,7 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
             Phase = m_Phase,
             LocalOffset = m_LocalOffset,
             LocalToWorld = m_SplineContainer.transform.localToWorldMatrix,
-            Writer = writer,
+            Writer = writers[0],
         }.Schedule(dependency);
 
         var cleanupJob = new DisposeNativeArrayJob<Frame> { Array = frames }
@@ -244,8 +244,8 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
                     var r0 = f0.Binormal.xyz;
 
                     var offset0 = ComputeLocalOffset(in f0);
-                    var left0 = (p0 + offset0) - r0 * halfWidth;
-                    var right0 = (p0 + offset0) + r0 * halfWidth;
+                    var left0 = p0 + offset0 - r0 * halfWidth;
+                    var right0 = p0 + offset0 + r0 * halfWidth;
 
                     var vL0 = new MeshVertex {
                         Position = math.mul(LocalToWorld, new float4(left0, 1.0f)).xyz,
@@ -269,8 +269,8 @@ public sealed class RibbonStripOnSplineGenerator : MeshGenerator {
                 var r1 = f1.Binormal.xyz;
 
                 var offset1 = ComputeLocalOffset(in f1);
-                var left1 = (p1 + offset1) - r1 * halfWidth;
-                var right1 = (p1 + offset1) + r1 * halfWidth;
+                var left1 = p1 + offset1 - r1 * halfWidth;
+                var right1 = p1 + offset1 + r1 * halfWidth;
 
                 var leftVertex = new MeshVertex {
                     Position = math.mul(LocalToWorld, new float4(left1, 1.0f)).xyz,
