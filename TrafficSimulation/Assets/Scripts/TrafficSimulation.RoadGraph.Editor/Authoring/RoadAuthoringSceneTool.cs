@@ -12,6 +12,8 @@ public sealed class RoadAuthoringSceneTool : EditorTool {
 
     private GUIContent? m_ToolbarIcon;
     public override GUIContent? toolbarIcon => m_ToolbarIcon;
+    private bool m_IsDragging;
+    private bool m_ShiftDown;
 
     private void OnEnable() {
         m_ToolbarIcon = EditorGUIUtility.IconContent("grid icon", "Road Authoring Tool|Road Authoring Tool");
@@ -41,7 +43,7 @@ public sealed class RoadAuthoringSceneTool : EditorTool {
 
         var evt = Event.current;
 
-        // Disable default SceneView selection and navigation while tool is active
+        // Disable default SceneView selection while tool is active
         HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
         sceneView.wantsMouseMove = true;
         var mouseRay = HandleUtility.GUIPointToWorldRay(evt.mousePosition);
@@ -60,24 +62,48 @@ public sealed class RoadAuthoringSceneTool : EditorTool {
             Handles.DrawDottedLine(hit, snapped, 4.0f);
 
             // Input callbacks (logging only for now)
+            // Allow alt+LMB to orbit SceneView: do not consume those events
+            var isAltOrbit = evt.alt && evt.button == 0;
+            if (isAltOrbit) return;
+
             switch (evt.type) {
                 case EventType.MouseDown when evt.button == 0:
-                    Debug.Log($"[RoadAuthoring] MouseDown @ world={hit} snapped={snapped} shift={evt.shift}");
+                    if (evt.shift) {
+                        if (!m_ShiftDown)
+                            Debug.Log("[RoadAuthoring] Shift Down");
+                        m_ShiftDown = true;
+                    }
+
+                    m_IsDragging = true;
+                    Debug.Log($"[RoadAuthoring] MouseDown @ world={hit} snapped={snapped} shift={m_ShiftDown}");
                     evt.Use();
                     break;
                 case EventType.MouseDrag when evt.button == 0:
-                    Debug.Log($"[RoadAuthoring] MouseDrag @ world={hit} snapped={snapped} shift={evt.shift}");
+                    Debug.Log($"[RoadAuthoring] MouseDrag @ world={hit} snapped={snapped} shift={m_ShiftDown}");
                     evt.Use();
                     break;
                 case EventType.MouseUp when evt.button == 0:
-                    Debug.Log($"[RoadAuthoring] MouseUp   @ world={hit} snapped={snapped} shift={evt.shift}");
+                    if (m_ShiftDown && !evt.shift) {
+                        Debug.Log("[RoadAuthoring] Shift Up");
+                        m_ShiftDown = false;
+                    }
+
+                    m_IsDragging = false;
+                    Debug.Log($"[RoadAuthoring] MouseUp   @ world={hit} snapped={snapped} shift={m_ShiftDown}");
                     evt.Use();
                     break;
-                case EventType.KeyDown when evt.keyCode == KeyCode.LeftShift || evt.keyCode == KeyCode.RightShift:
+                case EventType.KeyDown when evt.keyCode is KeyCode.LeftShift or KeyCode.RightShift:
+                    if (!m_IsDragging && m_ShiftDown)
+                        return;
+                    m_ShiftDown = true;
                     Debug.Log("[RoadAuthoring] Shift Down");
                     evt.Use();
                     break;
-                case EventType.KeyUp when evt.keyCode == KeyCode.LeftShift || evt.keyCode == KeyCode.RightShift:
+                case EventType.KeyUp when evt.keyCode is KeyCode.LeftShift or KeyCode.RightShift:
+                    m_ShiftDown = false;
+                    if (!m_IsDragging)
+                        return;
+
                     Debug.Log("[RoadAuthoring] Shift Up");
                     evt.Use();
                     break;
