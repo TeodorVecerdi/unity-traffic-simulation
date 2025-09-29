@@ -40,6 +40,10 @@ public sealed class RoadAuthoringSceneTool : EditorTool {
             return;
 
         var evt = Event.current;
+
+        // Disable default SceneView selection and navigation while tool is active
+        HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
+        sceneView.wantsMouseMove = true;
         var mouseRay = HandleUtility.GUIPointToWorldRay(evt.mousePosition);
 
         if (TryRaycastToGrid(m_Grid, mouseRay, out var hit)) {
@@ -55,7 +59,30 @@ public sealed class RoadAuthoringSceneTool : EditorTool {
             Handles.color = new Color(0.2f, 0.9f, 1f, 0.6f);
             Handles.DrawDottedLine(hit, snapped, 4.0f);
 
-            // Example: left click to place a marker (no data persistence yet)
+            // Input callbacks (logging only for now)
+            switch (evt.type) {
+                case EventType.MouseDown when evt.button == 0:
+                    Debug.Log($"[RoadAuthoring] MouseDown @ world={hit} snapped={snapped} shift={evt.shift}");
+                    evt.Use();
+                    break;
+                case EventType.MouseDrag when evt.button == 0:
+                    Debug.Log($"[RoadAuthoring] MouseDrag @ world={hit} snapped={snapped} shift={evt.shift}");
+                    evt.Use();
+                    break;
+                case EventType.MouseUp when evt.button == 0:
+                    Debug.Log($"[RoadAuthoring] MouseUp   @ world={hit} snapped={snapped} shift={evt.shift}");
+                    evt.Use();
+                    break;
+                case EventType.KeyDown when evt.keyCode == KeyCode.LeftShift || evt.keyCode == KeyCode.RightShift:
+                    Debug.Log("[RoadAuthoring] Shift Down");
+                    evt.Use();
+                    break;
+                case EventType.KeyUp when evt.keyCode == KeyCode.LeftShift || evt.keyCode == KeyCode.RightShift:
+                    Debug.Log("[RoadAuthoring] Shift Up");
+                    evt.Use();
+                    break;
+            }
+
             HandleUtility.Repaint();
         }
     }
