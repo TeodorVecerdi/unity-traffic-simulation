@@ -44,6 +44,7 @@ public sealed class RoadAuthoringSceneTool : EditorTool {
             return;
 
         var evt = Event.current;
+        var originalColor = Handles.color;
 
         // Disable default SceneView selection while tool is active
         HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
@@ -98,6 +99,8 @@ public sealed class RoadAuthoringSceneTool : EditorTool {
                     }
                 }
             }
+
+            Handles.color = originalColor;
 
             // Input callbacks (visual-only now; no logging)
             // Allow alt+LMB to orbit SceneView: do not consume those events

@@ -44,6 +44,9 @@ public sealed class GridGizmo : MonoBehaviour {
         var centerRightIndex = (int)math.round(drawOriginRightCoord / cell);
         var centerUpIndex = (int)math.round(drawOriginUpCoord / cell);
 
+        var originalColor = Handles.color;
+        var originalZTest = Handles.zTest;
+
         Handles.zTest = CompareFunction.LessEqual;
 
         // Minor lines
@@ -97,6 +100,9 @@ public sealed class GridGizmo : MonoBehaviour {
         Handles.DrawLine(drawOrigin + up * -extent, drawOrigin + up * extent);
         Handles.color = settings.AxisZColor;
         Handles.DrawLine(drawOrigin + right * -extent, drawOrigin + right * extent);
+
+        Handles.color = originalColor;
+        Handles.zTest = originalZTest;
     }
 #endif
 }
