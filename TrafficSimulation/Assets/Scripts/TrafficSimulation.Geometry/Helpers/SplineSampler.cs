@@ -1,4 +1,5 @@
-﻿using TrafficSimulation.Geometry.Data;
+﻿using TrafficSimulation.Core.Maths;
+using TrafficSimulation.Geometry.Data;
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine.Splines;

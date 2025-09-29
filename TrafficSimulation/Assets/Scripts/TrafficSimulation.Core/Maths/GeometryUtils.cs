@@ -3,7 +3,7 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Mathematics;
 
-namespace TrafficSimulation.Geometry.Helpers;
+namespace TrafficSimulation.Core.Maths;
 
 [BurstCompile]
 public static class GeometryUtils {

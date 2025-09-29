@@ -6,6 +6,9 @@
         "LitMotion",
         "LitMotion.Extensions",
         "UniTask",
+        "Unity.Burst",
+        "Unity.Collections",
+        "Unity.Mathematics",
         "Unity.RenderPipelines.Core.Runtime",
         "Vecerdi.Extensions.DependencyInjection"
     ],

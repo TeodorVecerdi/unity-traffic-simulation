@@ -1,4 +1,5 @@
-﻿using Unity.Collections;
+﻿using TrafficSimulation.Core.Maths;
+using Unity.Collections;
 using Unity.Mathematics;
 
 namespace TrafficSimulation.Geometry.Helpers;
