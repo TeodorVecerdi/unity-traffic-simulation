@@ -80,22 +80,21 @@ public sealed class RoadAuthoringSceneTool : EditorTool {
                         var t = math.normalizesafe(delta, new float3(1, 0, 0));
                         var lateral = math.normalizesafe(math.cross(n, t), new float3(0, 0, 1)) * m_HandleSign;
 
-                        // End control similar to current behavior; start control biased toward end control to create sharper L
                         var handleLen = len * 0.45f;
-                        var endBaseCP = end + lateral * handleLen;
-                        var startBaseCP = start + lateral * (handleLen * 0.25f);
-                        var startCP = math.lerp(startBaseCP, endBaseCP, 0.35f);
-                        var endCP = math.lerp(startCP, endBaseCP, 0.35f);
+                        var endBaseControlPoint = end + lateral * handleLen;
+                        var startBaseControlPoint = start + lateral * (handleLen * 0.25f);
+                        var startControlPoint = math.lerp(startBaseControlPoint, endBaseControlPoint, 0.35f);
+                        var endControlPoint = math.lerp(startControlPoint, endBaseControlPoint, 0.35f);
 
                         Handles.color = new Color(0.2f, 0.9f, 1f, 0.95f);
-                        Handles.DrawBezier(start, end, startCP, endCP, Handles.color, null, 2.0f);
+                        Handles.DrawBezier(start, end, startControlPoint, endControlPoint, Handles.color, null, 2.0f);
 
                         // Dotted guide lines to handles and small discs
                         Handles.color = new Color(0.2f, 0.9f, 1f, 0.6f);
-                        Handles.DrawDottedLine(start, startCP, 4.0f);
-                        Handles.DrawDottedLine(end, endCP, 4.0f);
-                        Handles.SphereHandleCap(0, startCP, Quaternion.identity, HandleUtility.GetHandleSize(startCP) * 0.04f, EventType.Repaint);
-                        Handles.SphereHandleCap(0, endCP, Quaternion.identity, HandleUtility.GetHandleSize(endCP) * 0.04f, EventType.Repaint);
+                        Handles.DrawDottedLine(start, startControlPoint, 4.0f);
+                        Handles.DrawDottedLine(end, endControlPoint, 4.0f);
+                        Handles.SphereHandleCap(0, startControlPoint, Quaternion.identity, HandleUtility.GetHandleSize(startControlPoint) * 0.04f, EventType.Repaint);
+                        Handles.SphereHandleCap(0, endControlPoint, Quaternion.identity, HandleUtility.GetHandleSize(endControlPoint) * 0.04f, EventType.Repaint);
                     }
                 }
             }
@@ -124,7 +123,6 @@ public sealed class RoadAuthoringSceneTool : EditorTool {
                 case EventType.ScrollWheel:
                     if (m_IsDragging && m_ShiftDown) {
                         if (evt.delta.sqrMagnitude > 0.001f) {
-                            Debug.Log("[RoadAuthoring] ScrollWheel");
                             m_HandleSign = -m_HandleSign;
                             evt.Use();
                         }
@@ -132,7 +130,7 @@ public sealed class RoadAuthoringSceneTool : EditorTool {
 
                     break;
                 case EventType.KeyDown when evt.keyCode is KeyCode.LeftShift or KeyCode.RightShift:
-                    if (!m_IsDragging && m_ShiftDown) return;
+                    if (!m_IsDragging) return;
                     m_ShiftDown = true;
                     evt.Use();
                     break;
