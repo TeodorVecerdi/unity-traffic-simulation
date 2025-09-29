@@ -23,6 +23,18 @@ public sealed class GridGizmo : MonoBehaviour {
 
         GeometryUtils.BuildOrthonormalBasis(n, math.up(), out var right, out var up);
 
+        // Center around SceneView pivot if available
+#if UNITY_EDITOR
+        if (SceneView.lastActiveSceneView != null) {
+            var pivot = (float3)SceneView.lastActiveSceneView.pivot;
+            // Project pivot to grid plane to keep drawing aligned with plane
+            var toPivot = pivot - origin;
+            var distPivot = math.dot(toPivot, n);
+            var pivotOnPlane = pivot - n * distPivot;
+            origin = pivotOnPlane;
+        }
+#endif
+
         var extent = math.max(cell, m_HalfExtent);
         var count = (int)math.ceil(extent / cell);
 
