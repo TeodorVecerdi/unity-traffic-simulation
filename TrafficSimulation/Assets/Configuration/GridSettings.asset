@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fcae016b2aef7a449af7d23360f4d03f, type: 3}
+  m_Name: GridSettings
+  m_EditorClassIdentifier: TrafficSimulation.RoadGraph::TrafficSimulation.RoadGraph.Authoring.Grid.GridSettings
+  m_CellSize: 1
+  m_MajorLineEvery: 10
+  m_MinorLineColor: {r: 1, g: 1, b: 1, a: 0.08}
+  m_MajorLineColor: {r: 1, g: 1, b: 1, a: 0.18}
+  m_AxisXColor: {r: 1, g: 0.25, b: 0.25, a: 0.9}
+  m_AxisZColor: {r: 0.25, g: 0.75, b: 1, a: 0.9}
+  m_SnapEnabled: 1

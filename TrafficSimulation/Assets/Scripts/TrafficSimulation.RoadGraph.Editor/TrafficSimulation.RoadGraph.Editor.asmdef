@@ -1,18 +1,18 @@
 {
-    "name": "TrafficSimulation.Core",
+    "name": "TrafficSimulation.RoadGraph.Editor",
     "rootNamespace": "",
     "references": [
-        "Vecerdi.Extensions.Logging",
-        "LitMotion",
-        "LitMotion.Extensions",
+        "TrafficSimulation.Core",
+        "TrafficSimulation.RoadGraph",
         "UniTask",
         "Unity.Burst",
         "Unity.Collections",
         "Unity.Mathematics",
-        "Unity.RenderPipelines.Core.Runtime",
-        "Vecerdi.Extensions.DependencyInjection"
+        "Unity.Splines"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
@@ -22,3 +22,5 @@
     "versionDefines": [],
     "noEngineReferences": false
 }
+
+
