@@ -14,6 +14,8 @@ public sealed class RoadAuthoringSceneTool : EditorTool {
     public override GUIContent? toolbarIcon => m_ToolbarIcon;
     private bool m_IsDragging;
     private bool m_ShiftDown;
+    private float3 m_DragStartSnapped;
+    private int m_HandleSign = 1; // +1 or -1, toggled by scroll while dragging
 
     private void OnEnable() {
         m_ToolbarIcon = EditorGUIUtility.IconContent("grid icon", "Road Authoring Tool|Road Authoring Tool");
@@ -61,50 +63,82 @@ public sealed class RoadAuthoringSceneTool : EditorTool {
             Handles.color = new Color(0.2f, 0.9f, 1f, 0.6f);
             Handles.DrawDottedLine(hit, snapped, 4.0f);
 
-            // Input callbacks (logging only for now)
+            // Drag preview
+            if (m_IsDragging) {
+                var start = m_DragStartSnapped;
+                var end = snapped;
+                var delta = end - start;
+                var len = math.length(delta);
+                if (len > 1e-5f) {
+                    if (!m_ShiftDown) {
+                        // Straight segment preview
+                        Handles.color = new Color(0.2f, 0.9f, 1f, 0.95f);
+                        Handles.DrawLine(start, end);
+                    } else {
+                        // Bezier preview with a single shared handle direction (L-shaped bend)
+                        var n = (float3)m_Grid.Normal;
+                        var t = math.normalizesafe(delta, new float3(1, 0, 0));
+                        var lateral = math.normalizesafe(math.cross(n, t), new float3(0, 0, 1)) * m_HandleSign;
+
+                        // End control similar to current behavior; start control biased toward end control to create sharper L
+                        var handleLen = len * 0.45f;
+                        var endBaseCP = end + lateral * handleLen;
+                        var startBaseCP = start + lateral * (handleLen * 0.25f);
+                        var startCP = math.lerp(startBaseCP, endBaseCP, 0.35f);
+                        var endCP = math.lerp(startCP, endBaseCP, 0.35f);
+
+                        Handles.color = new Color(0.2f, 0.9f, 1f, 0.95f);
+                        Handles.DrawBezier(start, end, startCP, endCP, Handles.color, null, 2.0f);
+
+                        // Dotted guide lines to handles and small discs
+                        Handles.color = new Color(0.2f, 0.9f, 1f, 0.6f);
+                        Handles.DrawDottedLine(start, startCP, 4.0f);
+                        Handles.DrawDottedLine(end, endCP, 4.0f);
+                        Handles.SphereHandleCap(0, startCP, Quaternion.identity, HandleUtility.GetHandleSize(startCP) * 0.04f, EventType.Repaint);
+                        Handles.SphereHandleCap(0, endCP, Quaternion.identity, HandleUtility.GetHandleSize(endCP) * 0.04f, EventType.Repaint);
+                    }
+                }
+            }
+
+            // Input callbacks (visual-only now; no logging)
             // Allow alt+LMB to orbit SceneView: do not consume those events
             var isAltOrbit = evt.alt && evt.button == 0;
             if (isAltOrbit) return;
 
             switch (evt.type) {
                 case EventType.MouseDown when evt.button == 0:
-                    if (evt.shift) {
-                        if (!m_ShiftDown)
-                            Debug.Log("[RoadAuthoring] Shift Down");
-                        m_ShiftDown = true;
-                    }
-
+                    if (evt.shift) m_ShiftDown = true;
                     m_IsDragging = true;
-                    Debug.Log($"[RoadAuthoring] MouseDown @ world={hit} snapped={snapped} shift={m_ShiftDown}");
+                    m_DragStartSnapped = snapped;
+                    m_HandleSign = 1; // default direction; can be flipped with scroll
                     evt.Use();
                     break;
                 case EventType.MouseDrag when evt.button == 0:
-                    Debug.Log($"[RoadAuthoring] MouseDrag @ world={hit} snapped={snapped} shift={m_ShiftDown}");
                     evt.Use();
                     break;
                 case EventType.MouseUp when evt.button == 0:
-                    if (m_ShiftDown && !evt.shift) {
-                        Debug.Log("[RoadAuthoring] Shift Up");
-                        m_ShiftDown = false;
-                    }
-
+                    if (m_ShiftDown && !evt.shift) m_ShiftDown = false;
                     m_IsDragging = false;
-                    Debug.Log($"[RoadAuthoring] MouseUp   @ world={hit} snapped={snapped} shift={m_ShiftDown}");
                     evt.Use();
                     break;
+                case EventType.ScrollWheel:
+                    if (m_IsDragging && m_ShiftDown) {
+                        if (evt.delta.sqrMagnitude > 0.001f) {
+                            Debug.Log("[RoadAuthoring] ScrollWheel");
+                            m_HandleSign = -m_HandleSign;
+                            evt.Use();
+                        }
+                    }
+
+                    break;
                 case EventType.KeyDown when evt.keyCode is KeyCode.LeftShift or KeyCode.RightShift:
-                    if (!m_IsDragging && m_ShiftDown)
-                        return;
+                    if (!m_IsDragging && m_ShiftDown) return;
                     m_ShiftDown = true;
-                    Debug.Log("[RoadAuthoring] Shift Down");
                     evt.Use();
                     break;
                 case EventType.KeyUp when evt.keyCode is KeyCode.LeftShift or KeyCode.RightShift:
                     m_ShiftDown = false;
-                    if (!m_IsDragging)
-                        return;
-
-                    Debug.Log("[RoadAuthoring] Shift Up");
+                    if (!m_IsDragging) return;
                     evt.Use();
                     break;
             }
