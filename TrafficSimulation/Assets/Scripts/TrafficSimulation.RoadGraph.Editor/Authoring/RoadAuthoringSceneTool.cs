@@ -1,0 +1,82 @@
+using TrafficSimulation.RoadGraph.Authoring.Grid;
+using Unity.Mathematics;
+using UnityEditor;
+using UnityEditor.EditorTools;
+using UnityEngine;
+
+namespace TrafficSimulation.RoadGraph.Editor.Authoring;
+
+[EditorTool("Road Authoring Tool", typeof(GridManager))]
+public sealed class RoadAuthoringSceneTool : EditorTool {
+    private GridManager? m_Grid;
+
+    private GUIContent? m_ToolbarIcon;
+    public override GUIContent? toolbarIcon => m_ToolbarIcon;
+
+    private void OnEnable() {
+        m_ToolbarIcon = EditorGUIUtility.IconContent("grid icon", "Road Authoring Tool|Road Authoring Tool");
+    }
+
+    private void OnDisable() {
+        m_ToolbarIcon = null;
+    }
+
+    public override void OnActivated() {
+        SceneView.lastActiveSceneView.ShowNotification(new GUIContent("Entering Road Authoring Tool"), 0.1f);
+    }
+
+    public override void OnWillBeDeactivated() {
+        SceneView.lastActiveSceneView.ShowNotification(new GUIContent("Exiting Road Authoring Tool"), 0.1f);
+    }
+
+    public override void OnToolGUI(EditorWindow window) {
+        if (window is not SceneView sceneView)
+            return;
+
+        if (m_Grid == null || !m_Grid.isActiveAndEnabled)
+            m_Grid = FindFirstObjectByType<GridManager>();
+
+        if (m_Grid == null || !m_Grid.IsValid)
+            return;
+
+        var evt = Event.current;
+        var mouseRay = HandleUtility.GUIPointToWorldRay(evt.mousePosition);
+
+        if (TryRaycastToGrid(m_Grid, mouseRay, out var hit)) {
+            var snapped = m_Grid.Snap(hit);
+
+            // Draw hover and snapped points
+            Handles.color = new Color(1f, 1f, 1f, 0.35f);
+            Handles.SphereHandleCap(0, hit, Quaternion.identity, HandleUtility.GetHandleSize(hit) * 0.05f, EventType.Repaint);
+            Handles.color = new Color(0.2f, 0.9f, 1f, 0.9f);
+            Handles.SphereHandleCap(0, snapped, Quaternion.identity, HandleUtility.GetHandleSize(snapped) * 0.07f, EventType.Repaint);
+
+            // Dashed line from hit to snapped
+            Handles.color = new Color(0.2f, 0.9f, 1f, 0.6f);
+            Handles.DrawDottedLine(hit, snapped, 4.0f);
+
+            // Example: left click to place a marker (no data persistence yet)
+            HandleUtility.Repaint();
+        }
+    }
+
+    private static bool TryRaycastToGrid(GridManager grid, Ray ray, out float3 hitPoint) {
+        var n = (float3)grid.Normal;
+        var p0 = (float3)grid.Origin;
+
+        var denom = math.dot(n, ray.direction);
+        if (math.abs(denom) < 1e-6f) {
+            hitPoint = default;
+            return false;
+        }
+
+        var t = math.dot(n, p0 - (float3)ray.origin) / denom;
+        if (t < 0.0f) {
+            hitPoint = default;
+            return false;
+        }
+
+        hitPoint = (float3)ray.origin + (float3)ray.direction * t;
+        return true;
+    }
+}
