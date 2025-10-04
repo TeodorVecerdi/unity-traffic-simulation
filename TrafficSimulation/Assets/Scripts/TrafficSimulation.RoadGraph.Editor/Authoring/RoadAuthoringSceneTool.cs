@@ -142,6 +142,9 @@ public sealed class RoadAuthoringSceneTool : EditorTool {
         var cellSize = m_Grid.Settings.CellSize;
         var roadWidth = span.x * cellSize;
 
+        // Calculate extension amount to cover full cells (half a cell in each direction along the road)
+        var halfCellExtension = cellSize * 0.5f * span.y;
+
         // Build orthonormal basis for the grid plane
         var n = math.normalize(m_Grid.Normal);
         GeometryUtils.BuildOrthonormalBasis(n, math.up(), out var gridRight, out var gridUp);
@@ -152,11 +155,15 @@ public sealed class RoadAuthoringSceneTool : EditorTool {
             var right = math.normalizesafe(math.cross(n, forward), gridRight);
             var halfWidth = roadWidth * 0.5f;
 
+            // Extend start and end positions to cover full cells
+            var extendedStart = start - forward * halfCellExtension;
+            var extendedEnd = end + forward * halfCellExtension;
+
             // Calculate the four corners of the oriented box
-            var corner0 = start - right * halfWidth;
-            var corner1 = start + right * halfWidth;
-            var corner2 = end + right * halfWidth;
-            var corner3 = end - right * halfWidth;
+            var corner0 = extendedStart - right * halfWidth;
+            var corner1 = extendedStart + right * halfWidth;
+            var corner2 = extendedEnd + right * halfWidth;
+            var corner3 = extendedEnd - right * halfWidth;
 
             // Draw the road geometry
             var fillColor = new Color(0.2f, 0.9f, 1f, 0.25f);
@@ -166,31 +173,49 @@ public sealed class RoadAuthoringSceneTool : EditorTool {
 
             // Draw centerline
             Handles.color = new Color(0.2f, 0.9f, 1f, 0.6f);
-            Handles.DrawLine(start, end);
+            Handles.DrawLine(extendedStart, extendedEnd);
         } else {
             // Bezier preview with a single shared handle direction (L-shaped bend)
             var t = math.normalizesafe(delta, new float3(1, 0, 0));
             var lateral = math.normalizesafe(math.cross(n, t), new float3(0, 0, 1)) * m_HandleSign;
 
+            // First, calculate control points based on original endpoints to determine tangent directions
             var handleLen = len * 0.45f;
             var endBaseControlPoint = end + lateral * handleLen;
             var startBaseControlPoint = start + lateral * (handleLen * 0.25f);
             var startControlPoint = math.lerp(startBaseControlPoint, endBaseControlPoint, 0.35f);
             var endControlPoint = math.lerp(startControlPoint, endBaseControlPoint, 0.35f);
 
+            // Calculate tangent directions from control points for proper extension
+            var startTangent = math.normalizesafe(startControlPoint - start, delta);
+            var endTangent = math.normalizesafe(end - endControlPoint, delta);
+
+            // Extend start and end positions along their tangent directions
+            var extendedStart = start - startTangent * halfCellExtension;
+            var extendedEnd = end + endTangent * halfCellExtension;
+
+            // Recalculate control points based on extended endpoints
+            var extendedDelta = extendedEnd - extendedStart;
+            var extendedLen = math.length(extendedDelta);
+            var extendedHandleLen = extendedLen * 0.45f;
+            var extendedEndBaseControlPoint = extendedEnd + lateral * extendedHandleLen;
+            var extendedStartBaseControlPoint = extendedStart + lateral * (extendedHandleLen * 0.25f);
+            var extendedStartControlPoint = math.lerp(extendedStartBaseControlPoint, extendedEndBaseControlPoint, 0.35f);
+            var extendedEndControlPoint = math.lerp(extendedStartControlPoint, extendedEndBaseControlPoint, 0.35f);
+
             // Draw road geometry along bezier curve
-            DrawBezierRoad(start, end, startControlPoint, endControlPoint, roadWidth, n);
+            DrawBezierRoad(extendedStart, extendedEnd, extendedStartControlPoint, extendedEndControlPoint, roadWidth, n);
 
             // Dotted guide lines to handles and small discs
             Handles.color = new Color(0.2f, 0.9f, 1f, 0.4f);
-            Handles.DrawDottedLine(start, startControlPoint, 4.0f);
-            Handles.DrawDottedLine(end, endControlPoint, 4.0f);
-            Handles.SphereHandleCap(0, startControlPoint, Quaternion.identity, HandleUtility.GetHandleSize(startControlPoint) * 0.04f, EventType.Repaint);
-            Handles.SphereHandleCap(0, endControlPoint, Quaternion.identity, HandleUtility.GetHandleSize(endControlPoint) * 0.04f, EventType.Repaint);
+            Handles.DrawDottedLine(extendedStart, extendedStartControlPoint, 4.0f);
+            Handles.DrawDottedLine(extendedEnd, extendedEndControlPoint, 4.0f);
+            Handles.SphereHandleCap(0, extendedStartControlPoint, Quaternion.identity, HandleUtility.GetHandleSize(extendedStartControlPoint) * 0.04f, EventType.Repaint);
+            Handles.SphereHandleCap(0, extendedEndControlPoint, Quaternion.identity, HandleUtility.GetHandleSize(extendedEndControlPoint) * 0.04f, EventType.Repaint);
 
             // Draw centerline bezier
             Handles.color = new Color(0.2f, 0.9f, 1f, 0.6f);
-            Handles.DrawBezier(start, end, startControlPoint, endControlPoint, Handles.color, null, 1.5f);
+            Handles.DrawBezier(extendedStart, extendedEnd, extendedStartControlPoint, extendedEndControlPoint, Handles.color, null, 1.5f);
         }
     }
 
