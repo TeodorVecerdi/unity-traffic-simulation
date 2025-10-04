@@ -11,9 +11,14 @@ public sealed class GridManager : MonoBehaviour {
     [SerializeField] private Vector3 m_Origin = Vector3.zero;
     [SerializeField] private Vector3 m_Normal = Vector3.up;
 
+    [Title("Road Authoring")]
+    [SerializeField, EnumToggleButtons]
+    private SelectedRoadType m_SelectedRoadType = SelectedRoadType.None;
+
     public GridSettings Settings => m_Settings;
     public Vector3 Origin => m_Origin;
     public Vector3 Normal => m_Normal;
+    public SelectedRoadType SelectedRoadType => m_SelectedRoadType;
 
     public bool IsValid => m_Settings != null && m_Settings.CellSize > 0.0f && math.lengthsq(m_Normal) > math.EPSILON;
 
