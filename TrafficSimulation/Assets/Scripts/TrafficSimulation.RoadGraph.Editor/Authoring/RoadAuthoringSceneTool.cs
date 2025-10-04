@@ -1,3 +1,4 @@
+using TrafficSimulation.Core.Maths;
 using TrafficSimulation.RoadGraph.Authoring.Grid;
 using Unity.Mathematics;
 using UnityEditor;
@@ -63,6 +64,11 @@ public sealed class RoadAuthoringSceneTool : EditorTool {
             // Dashed line from hit to snapped
             Handles.color = new Color(0.2f, 0.9f, 1f, 0.6f);
             Handles.DrawDottedLine(hit, snapped, 4.0f);
+
+            // Draw ghost rectangle for the selected road type
+            if (m_Grid.SelectedRoadType is not SelectedRoadType.None) {
+                DrawGhostRectangle(m_Grid, snapped);
+            }
 
             // Drag preview
             if (m_IsDragging) {
@@ -170,5 +176,36 @@ public sealed class RoadAuthoringSceneTool : EditorTool {
 
         hitPoint = (float3)ray.origin + (float3)ray.direction * t;
         return true;
+    }
+
+    private static void DrawGhostRectangle(GridManager grid, float3 snappedPosition) {
+        var roadType = grid.SelectedRoadType;
+        var span = roadType.GetRoadSpan();
+        var cellSize = grid.Settings.CellSize;
+
+        // Build orthonormal basis for the grid plane
+        var n = math.normalize(grid.Normal);
+        GeometryUtils.BuildOrthonormalBasis(n, math.up(), out var right, out var up);
+
+        // Calculate the rectangle dimensions in world space
+        var widthAcross = span.x * cellSize;
+        var widthAlong = span.y * cellSize;
+
+        // Calculate the half extents
+        var halfAcross = widthAcross * 0.5f;
+        var halfAlong = widthAlong * 0.5f;
+
+        // Calculate the four corners of the rectangle centered at snappedPosition
+        var corner0 = snappedPosition - right * halfAcross - up * halfAlong;
+        var corner1 = snappedPosition + right * halfAcross - up * halfAlong;
+        var corner2 = snappedPosition + right * halfAcross + up * halfAlong;
+        var corner3 = snappedPosition - right * halfAcross + up * halfAlong;
+
+        // Draw filled rectangle with outline
+        var fillColor = new Color(0.2f, 0.9f, 1f, 0.15f);
+        var outlineColor = new Color(0.2f, 0.9f, 1f, 0.6f);
+
+        var corners = new Vector3[] { corner0, corner1, corner2, corner3 };
+        Handles.DrawSolidRectangleWithOutline(corners, fillColor, outlineColor);
     }
 }
