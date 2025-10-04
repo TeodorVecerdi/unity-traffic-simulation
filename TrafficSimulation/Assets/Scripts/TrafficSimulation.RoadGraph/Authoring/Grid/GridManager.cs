@@ -22,7 +22,7 @@ public sealed class GridManager : MonoBehaviour {
 
     public bool IsValid => m_Settings != null && m_Settings.CellSize > 0.0f && math.lengthsq(m_Normal) > math.EPSILON;
 
-    public float3 Snap(float3 worldPosition) {
+    public float3 Snap(float3 worldPosition, float2 offset = default) {
         if (!IsValid || !m_Settings.SnapEnabled)
             return worldPosition;
 
@@ -35,7 +35,11 @@ public sealed class GridManager : MonoBehaviour {
         var local = new float2(math.dot(onPlane - (float3)m_Origin, right), math.dot(onPlane - (float3)m_Origin, up));
 
         var cell = m_Settings.CellSize;
-        local = new float2(math.round(local.x / cell) * cell, math.round(local.y / cell) * cell);
+        // Apply offset before rounding to affect which cell is selected
+        var offsetLocal = local - offset * cell;
+        var roundedLocal = new float2(math.round(offsetLocal.x / cell) * cell, math.round(offsetLocal.y / cell) * cell);
+        // Add offset back to get final position
+        local = roundedLocal + offset * cell;
 
         var snapped = (float3)m_Origin + right * local.x + up * local.y;
         return snapped;
