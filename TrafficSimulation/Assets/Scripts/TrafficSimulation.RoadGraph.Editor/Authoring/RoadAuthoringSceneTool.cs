@@ -51,76 +51,82 @@ public sealed class RoadAuthoringSceneTool : EditorTool {
         HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
         sceneView.wantsMouseMove = true;
         var mouseRay = HandleUtility.GUIPointToWorldRay(evt.mousePosition);
+        if (!TryRaycastToGrid(m_Grid, mouseRay, out var hit))
+            return;
 
-        if (TryRaycastToGrid(m_Grid, mouseRay, out var hit)) {
-            var snapped = m_Grid.Snap(hit);
+        var offset = m_Grid.SelectedRoadType.GetGridOffset();
+        var snapped = m_Grid.Snap(hit, offset);
 
-            // Draw hover and snapped points
-            Handles.color = new Color(1f, 1f, 1f, 0.35f);
-            Handles.SphereHandleCap(0, hit, Quaternion.identity, HandleUtility.GetHandleSize(hit) * 0.05f, EventType.Repaint);
-            Handles.color = new Color(0.2f, 0.9f, 1f, 0.9f);
-            Handles.SphereHandleCap(0, snapped, Quaternion.identity, HandleUtility.GetHandleSize(snapped) * 0.07f, EventType.Repaint);
+        // Draw hit and snapped positions
+        DrawHitPosition(hit, snapped);
 
-            // Dashed line from hit to snapped
-            Handles.color = new Color(0.2f, 0.9f, 1f, 0.6f);
-            Handles.DrawDottedLine(hit, snapped, 4.0f);
-
-            // Draw ghost rectangle for the selected road type
-            if (m_Grid.SelectedRoadType is not SelectedRoadType.None) {
-                DrawGhostRectangle(m_Grid, snapped);
-            }
-
-            // Drag preview
-            if (m_IsDragging) {
-                DrawRoadSegmentPreview(snapped);
-            }
-
-            Handles.color = originalColor;
-
-            // Input callbacks (visual-only now; no logging)
-            // Allow alt+LMB to orbit SceneView: do not consume those events
-            var isAltOrbit = evt is { alt: true, button: 0 };
-            if (isAltOrbit) return;
-
-            switch (evt.type) {
-                case EventType.MouseDown when evt.button == 0:
-                    if (evt.shift) m_ShiftDown = true;
-                    m_IsDragging = true;
-                    m_DragStartSnapped = snapped;
-                    m_HandleSign = 1; // default direction; can be flipped with scroll
-                    evt.Use();
-                    break;
-                case EventType.MouseDrag when evt.button == 0:
-                    evt.Use();
-                    break;
-                case EventType.MouseUp when evt.button == 0:
-                    if (m_ShiftDown && !evt.shift) m_ShiftDown = false;
-                    m_IsDragging = false;
-                    evt.Use();
-                    break;
-                case EventType.ScrollWheel:
-                    if (m_IsDragging && m_ShiftDown) {
-                        if (evt.delta.sqrMagnitude > 0.001f) {
-                            m_HandleSign = -m_HandleSign;
-                            evt.Use();
-                        }
-                    }
-
-                    break;
-                case EventType.KeyDown when evt.keyCode is KeyCode.LeftShift or KeyCode.RightShift:
-                    if (!m_IsDragging) return;
-                    m_ShiftDown = true;
-                    evt.Use();
-                    break;
-                case EventType.KeyUp when evt.keyCode is KeyCode.LeftShift or KeyCode.RightShift:
-                    m_ShiftDown = false;
-                    if (!m_IsDragging) return;
-                    evt.Use();
-                    break;
-            }
-
-            HandleUtility.Repaint();
+        // Draw ghost rectangle for the selected road type
+        if (m_Grid.SelectedRoadType is not SelectedRoadType.None) {
+            DrawGhostRectangle(m_Grid, snapped);
         }
+
+        // Drag preview
+        if (m_IsDragging) {
+            DrawRoadSegmentPreview(snapped);
+        }
+
+        Handles.color = originalColor;
+
+        // Input callbacks (visual-only now; no logging)
+        // Allow alt+LMB to orbit SceneView: do not consume those events
+        var isAltOrbit = evt is { alt: true, button: 0 };
+        if (isAltOrbit) return;
+
+        switch (evt.type) {
+            case EventType.MouseDown when evt.button == 0:
+                if (evt.shift) m_ShiftDown = true;
+                m_IsDragging = true;
+                m_DragStartSnapped = snapped;
+                m_HandleSign = 1; // default direction; can be flipped with scroll
+                evt.Use();
+                break;
+            case EventType.MouseDrag when evt.button == 0:
+                evt.Use();
+                break;
+            case EventType.MouseUp when evt.button == 0:
+                if (m_ShiftDown && !evt.shift) m_ShiftDown = false;
+                m_IsDragging = false;
+                evt.Use();
+                break;
+            case EventType.ScrollWheel:
+                if (m_IsDragging && m_ShiftDown) {
+                    if (evt.delta.sqrMagnitude > 0.001f) {
+                        m_HandleSign = -m_HandleSign;
+                        evt.Use();
+                    }
+                }
+
+                break;
+            case EventType.KeyDown when evt.keyCode is KeyCode.LeftShift or KeyCode.RightShift:
+                if (!m_IsDragging) return;
+                m_ShiftDown = true;
+                evt.Use();
+                break;
+            case EventType.KeyUp when evt.keyCode is KeyCode.LeftShift or KeyCode.RightShift:
+                m_ShiftDown = false;
+                if (!m_IsDragging) return;
+                evt.Use();
+                break;
+        }
+
+        HandleUtility.Repaint();
+    }
+
+    private static void DrawHitPosition(float3 hit, float3 snapped) {
+        // Draw hover and snapped points
+        Handles.color = new Color(1f, 1f, 1f, 0.35f);
+        Handles.SphereHandleCap(0, hit, Quaternion.identity, HandleUtility.GetHandleSize(hit) * 0.05f, EventType.Repaint);
+        Handles.color = new Color(0.2f, 0.9f, 1f, 0.9f);
+        Handles.SphereHandleCap(0, snapped, Quaternion.identity, HandleUtility.GetHandleSize(snapped) * 0.07f, EventType.Repaint);
+
+        // Dashed line from hit to snapped
+        Handles.color = new Color(0.2f, 0.9f, 1f, 0.6f);
+        Handles.DrawDottedLine(hit, snapped, 4.0f);
     }
 
     private void DrawRoadSegmentPreview(float3 snapped) {
@@ -162,13 +168,13 @@ public sealed class RoadAuthoringSceneTool : EditorTool {
         var n = (float3)grid.Normal;
         var p0 = (float3)grid.Origin;
 
-        var denom = math.dot(n, ray.direction);
-        if (math.abs(denom) < 1e-6f) {
+        var denominator = math.dot(n, ray.direction);
+        if (math.abs(denominator) < 1e-6f) {
             hitPoint = default;
             return false;
         }
 
-        var t = math.dot(n, p0 - (float3)ray.origin) / denom;
+        var t = math.dot(n, p0 - (float3)ray.origin) / denominator;
         if (t < 0.0f) {
             hitPoint = default;
             return false;
@@ -196,10 +202,10 @@ public sealed class RoadAuthoringSceneTool : EditorTool {
         var halfAlong = widthAlong * 0.5f;
 
         // Calculate the four corners of the rectangle centered at snappedPosition
-        var corner0 = snappedPosition - right * halfAcross - up * halfAlong;
-        var corner1 = snappedPosition + right * halfAcross - up * halfAlong;
-        var corner2 = snappedPosition + right * halfAcross + up * halfAlong;
-        var corner3 = snappedPosition - right * halfAcross + up * halfAlong;
+        var corner0 = snappedPosition + right * -halfAcross + up * -halfAlong;
+        var corner1 = snappedPosition + right * +halfAcross + up * -halfAlong;
+        var corner2 = snappedPosition + right * +halfAcross + up * +halfAlong;
+        var corner3 = snappedPosition + right * -halfAcross + up * +halfAlong;
 
         // Draw filled rectangle with outline
         var fillColor = new Color(0.2f, 0.9f, 1f, 0.15f);
