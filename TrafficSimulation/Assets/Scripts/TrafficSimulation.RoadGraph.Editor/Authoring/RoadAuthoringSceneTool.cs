@@ -66,45 +66,14 @@ public sealed class RoadAuthoringSceneTool : EditorTool {
 
             // Drag preview
             if (m_IsDragging) {
-                var start = m_DragStartSnapped;
-                var end = snapped;
-                var delta = end - start;
-                var len = math.length(delta);
-                if (len > 1e-5f) {
-                    if (!m_ShiftDown) {
-                        // Straight segment preview
-                        Handles.color = new Color(0.2f, 0.9f, 1f, 0.95f);
-                        Handles.DrawLine(start, end);
-                    } else {
-                        // Bezier preview with a single shared handle direction (L-shaped bend)
-                        var n = (float3)m_Grid.Normal;
-                        var t = math.normalizesafe(delta, new float3(1, 0, 0));
-                        var lateral = math.normalizesafe(math.cross(n, t), new float3(0, 0, 1)) * m_HandleSign;
-
-                        var handleLen = len * 0.45f;
-                        var endBaseControlPoint = end + lateral * handleLen;
-                        var startBaseControlPoint = start + lateral * (handleLen * 0.25f);
-                        var startControlPoint = math.lerp(startBaseControlPoint, endBaseControlPoint, 0.35f);
-                        var endControlPoint = math.lerp(startControlPoint, endBaseControlPoint, 0.35f);
-
-                        Handles.color = new Color(0.2f, 0.9f, 1f, 0.95f);
-                        Handles.DrawBezier(start, end, startControlPoint, endControlPoint, Handles.color, null, 2.0f);
-
-                        // Dotted guide lines to handles and small discs
-                        Handles.color = new Color(0.2f, 0.9f, 1f, 0.6f);
-                        Handles.DrawDottedLine(start, startControlPoint, 4.0f);
-                        Handles.DrawDottedLine(end, endControlPoint, 4.0f);
-                        Handles.SphereHandleCap(0, startControlPoint, Quaternion.identity, HandleUtility.GetHandleSize(startControlPoint) * 0.04f, EventType.Repaint);
-                        Handles.SphereHandleCap(0, endControlPoint, Quaternion.identity, HandleUtility.GetHandleSize(endControlPoint) * 0.04f, EventType.Repaint);
-                    }
-                }
+                DrawRoadSegmentPreview(snapped);
             }
 
             Handles.color = originalColor;
 
             // Input callbacks (visual-only now; no logging)
             // Allow alt+LMB to orbit SceneView: do not consume those events
-            var isAltOrbit = evt.alt && evt.button == 0;
+            var isAltOrbit = evt is { alt: true, button: 0 };
             if (isAltOrbit) return;
 
             switch (evt.type) {
@@ -145,6 +114,41 @@ public sealed class RoadAuthoringSceneTool : EditorTool {
             }
 
             HandleUtility.Repaint();
+        }
+    }
+
+    private void DrawRoadSegmentPreview(float3 snapped) {
+        var start = m_DragStartSnapped;
+        var end = snapped;
+        var delta = end - start;
+        var len = math.length(delta);
+        if (len > 1e-5f) {
+            if (!m_ShiftDown) {
+                // Straight segment preview
+                Handles.color = new Color(0.2f, 0.9f, 1f, 0.95f);
+                Handles.DrawLine(start, end);
+            } else {
+                // Bezier preview with a single shared handle direction (L-shaped bend)
+                var n = (float3)m_Grid!.Normal;
+                var t = math.normalizesafe(delta, new float3(1, 0, 0));
+                var lateral = math.normalizesafe(math.cross(n, t), new float3(0, 0, 1)) * m_HandleSign;
+
+                var handleLen = len * 0.45f;
+                var endBaseControlPoint = end + lateral * handleLen;
+                var startBaseControlPoint = start + lateral * (handleLen * 0.25f);
+                var startControlPoint = math.lerp(startBaseControlPoint, endBaseControlPoint, 0.35f);
+                var endControlPoint = math.lerp(startControlPoint, endBaseControlPoint, 0.35f);
+
+                Handles.color = new Color(0.2f, 0.9f, 1f, 0.95f);
+                Handles.DrawBezier(start, end, startControlPoint, endControlPoint, Handles.color, null, 2.0f);
+
+                // Dotted guide lines to handles and small discs
+                Handles.color = new Color(0.2f, 0.9f, 1f, 0.6f);
+                Handles.DrawDottedLine(start, startControlPoint, 4.0f);
+                Handles.DrawDottedLine(end, endControlPoint, 4.0f);
+                Handles.SphereHandleCap(0, startControlPoint, Quaternion.identity, HandleUtility.GetHandleSize(startControlPoint) * 0.04f, EventType.Repaint);
+                Handles.SphereHandleCap(0, endControlPoint, Quaternion.identity, HandleUtility.GetHandleSize(endControlPoint) * 0.04f, EventType.Repaint);
+            }
         }
     }
 
