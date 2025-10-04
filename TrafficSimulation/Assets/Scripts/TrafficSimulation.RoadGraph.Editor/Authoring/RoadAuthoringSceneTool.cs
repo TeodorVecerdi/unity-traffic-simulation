@@ -134,34 +134,124 @@ public sealed class RoadAuthoringSceneTool : EditorTool {
         var end = snapped;
         var delta = end - start;
         var len = math.length(delta);
-        if (len > 1e-5f) {
-            if (!m_ShiftDown) {
-                // Straight segment preview
-                Handles.color = new Color(0.2f, 0.9f, 1f, 0.95f);
-                Handles.DrawLine(start, end);
-            } else {
-                // Bezier preview with a single shared handle direction (L-shaped bend)
-                var n = (float3)m_Grid!.Normal;
-                var t = math.normalizesafe(delta, new float3(1, 0, 0));
-                var lateral = math.normalizesafe(math.cross(n, t), new float3(0, 0, 1)) * m_HandleSign;
+        if (len < 1e-5f)
+            return;
 
-                var handleLen = len * 0.45f;
-                var endBaseControlPoint = end + lateral * handleLen;
-                var startBaseControlPoint = start + lateral * (handleLen * 0.25f);
-                var startControlPoint = math.lerp(startBaseControlPoint, endBaseControlPoint, 0.35f);
-                var endControlPoint = math.lerp(startControlPoint, endBaseControlPoint, 0.35f);
+        var roadType = m_Grid!.SelectedRoadType;
+        var span = roadType.GetRoadSpan();
+        var cellSize = m_Grid.Settings.CellSize;
+        var roadWidth = span.x * cellSize;
 
-                Handles.color = new Color(0.2f, 0.9f, 1f, 0.95f);
-                Handles.DrawBezier(start, end, startControlPoint, endControlPoint, Handles.color, null, 2.0f);
+        // Build orthonormal basis for the grid plane
+        var n = math.normalize(m_Grid.Normal);
+        GeometryUtils.BuildOrthonormalBasis(n, math.up(), out var gridRight, out var gridUp);
 
-                // Dotted guide lines to handles and small discs
-                Handles.color = new Color(0.2f, 0.9f, 1f, 0.6f);
-                Handles.DrawDottedLine(start, startControlPoint, 4.0f);
-                Handles.DrawDottedLine(end, endControlPoint, 4.0f);
-                Handles.SphereHandleCap(0, startControlPoint, Quaternion.identity, HandleUtility.GetHandleSize(startControlPoint) * 0.04f, EventType.Repaint);
-                Handles.SphereHandleCap(0, endControlPoint, Quaternion.identity, HandleUtility.GetHandleSize(endControlPoint) * 0.04f, EventType.Repaint);
-            }
+        if (!m_ShiftDown) {
+            // Straight segment preview - draw oriented box
+            var forward = math.normalizesafe(delta, gridUp);
+            var right = math.normalizesafe(math.cross(n, forward), gridRight);
+            var halfWidth = roadWidth * 0.5f;
+
+            // Calculate the four corners of the oriented box
+            var corner0 = start - right * halfWidth;
+            var corner1 = start + right * halfWidth;
+            var corner2 = end + right * halfWidth;
+            var corner3 = end - right * halfWidth;
+
+            // Draw the road geometry
+            var fillColor = new Color(0.2f, 0.9f, 1f, 0.25f);
+            var outlineColor = new Color(0.2f, 0.9f, 1f, 0.8f);
+            var corners = new Vector3[] { corner0, corner1, corner2, corner3 };
+            Handles.DrawSolidRectangleWithOutline(corners, fillColor, outlineColor);
+
+            // Draw centerline
+            Handles.color = new Color(0.2f, 0.9f, 1f, 0.6f);
+            Handles.DrawLine(start, end);
+        } else {
+            // Bezier preview with a single shared handle direction (L-shaped bend)
+            var t = math.normalizesafe(delta, new float3(1, 0, 0));
+            var lateral = math.normalizesafe(math.cross(n, t), new float3(0, 0, 1)) * m_HandleSign;
+
+            var handleLen = len * 0.45f;
+            var endBaseControlPoint = end + lateral * handleLen;
+            var startBaseControlPoint = start + lateral * (handleLen * 0.25f);
+            var startControlPoint = math.lerp(startBaseControlPoint, endBaseControlPoint, 0.35f);
+            var endControlPoint = math.lerp(startControlPoint, endBaseControlPoint, 0.35f);
+
+            // Draw road geometry along bezier curve
+            DrawBezierRoad(start, end, startControlPoint, endControlPoint, roadWidth, n);
+
+            // Dotted guide lines to handles and small discs
+            Handles.color = new Color(0.2f, 0.9f, 1f, 0.4f);
+            Handles.DrawDottedLine(start, startControlPoint, 4.0f);
+            Handles.DrawDottedLine(end, endControlPoint, 4.0f);
+            Handles.SphereHandleCap(0, startControlPoint, Quaternion.identity, HandleUtility.GetHandleSize(startControlPoint) * 0.04f, EventType.Repaint);
+            Handles.SphereHandleCap(0, endControlPoint, Quaternion.identity, HandleUtility.GetHandleSize(endControlPoint) * 0.04f, EventType.Repaint);
+
+            // Draw centerline bezier
+            Handles.color = new Color(0.2f, 0.9f, 1f, 0.6f);
+            Handles.DrawBezier(start, end, startControlPoint, endControlPoint, Handles.color, null, 1.5f);
         }
+    }
+
+    private static void DrawBezierRoad(float3 start, float3 end, float3 startControl, float3 endControl, float roadWidth, float3 normal) {
+        const int segments = 32;
+        var halfWidth = roadWidth * 0.5f;
+        var fillColor = new Color(0.2f, 0.9f, 1f, 0.25f);
+        var outlineColor = new Color(0.2f, 0.9f, 1f, 0.8f);
+
+        // Sample bezier curve and calculate perpendicular offsets
+        var leftPoints = new Vector3[segments + 1];
+        var rightPoints = new Vector3[segments + 1];
+
+        for (var i = 0; i <= segments; i++) {
+            var t = i / (float)segments;
+            var pos = EvaluateBezier(start, end, startControl, endControl, t);
+            var tangent = EvaluateBezierDerivative(start, end, startControl, endControl, t);
+            var right = math.normalizesafe(math.cross(normal, tangent), new float3(1, 0, 0));
+
+            leftPoints[i] = pos - right * halfWidth;
+            rightPoints[i] = pos + right * halfWidth;
+        }
+
+        // Draw filled quads between segments
+        for (var i = 0; i < segments; i++) {
+            var quad = new[] {
+                leftPoints[i],
+                rightPoints[i],
+                rightPoints[i + 1],
+                leftPoints[i + 1],
+            };
+            Handles.DrawSolidRectangleWithOutline(quad, fillColor, Color.clear);
+        }
+
+        // Draw outline edges
+        Handles.color = outlineColor;
+        for (var i = 0; i < segments; i++) {
+            Handles.DrawLine(leftPoints[i], leftPoints[i + 1]);
+            Handles.DrawLine(rightPoints[i], rightPoints[i + 1]);
+        }
+
+        // Close the ends
+        Handles.DrawLine(leftPoints[0], rightPoints[0]);
+        Handles.DrawLine(leftPoints[segments], rightPoints[segments]);
+    }
+
+    private static float3 EvaluateBezier(float3 p0, float3 p3, float3 p1, float3 p2, float t) {
+        var u = 1.0f - t;
+        var tt = t * t;
+        var uu = u * u;
+        var uuu = uu * u;
+        var ttt = tt * t;
+        return uuu * p0 + 3.0f * uu * t * p1 + 3.0f * u * tt * p2 + ttt * p3;
+    }
+
+    private static float3 EvaluateBezierDerivative(float3 p0, float3 p3, float3 p1, float3 p2, float t) {
+        var u = 1.0f - t;
+        var uu = u * u;
+        var tt = t * t;
+
+        return 3.0f * uu * (p1 - p0) + 6.0f * u * t * (p2 - p1) + 3.0f * tt * (p3 - p2);
     }
 
     private static bool TryRaycastToGrid(GridManager grid, Ray ray, out float3 hitPoint) {
