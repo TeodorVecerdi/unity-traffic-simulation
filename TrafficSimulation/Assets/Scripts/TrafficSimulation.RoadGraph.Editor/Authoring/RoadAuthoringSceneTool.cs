@@ -15,6 +15,7 @@ public sealed class RoadAuthoringSceneTool : EditorTool {
     public override GUIContent? toolbarIcon => m_ToolbarIcon;
     private bool m_IsDragging;
     private bool m_ShiftDown;
+    private float3 m_DragStartHit; // Original hit position at drag start
     private float3 m_DragStartSnapped;
     private int m_HandleSign = 1; // +1 or -1, toggled by scroll while dragging
 
@@ -55,7 +56,19 @@ public sealed class RoadAuthoringSceneTool : EditorTool {
             return;
 
         var offset = m_Grid.SelectedRoadType.GetGridOffset();
-        var snapped = m_Grid.Snap(hit, offset);
+
+        // When dragging, calculate direction to make snap offset direction-aware
+        float3 direction = default;
+        if (m_IsDragging) {
+            var dragDirection = hit - m_DragStartHit;
+            if (math.lengthsq(dragDirection) > 1e-6f) {
+                direction = math.normalize(dragDirection);
+                // Re-snap start position with direction awareness
+                m_DragStartSnapped = m_Grid.Snap(m_DragStartHit, offset, direction);
+            }
+        }
+
+        var snapped = m_Grid.Snap(hit, offset, direction);
 
         // Draw hit and snapped positions
         DrawHitPosition(hit, snapped);
@@ -81,6 +94,7 @@ public sealed class RoadAuthoringSceneTool : EditorTool {
             case EventType.MouseDown when evt.button == 0:
                 if (evt.shift) m_ShiftDown = true;
                 m_IsDragging = true;
+                m_DragStartHit = hit;
                 m_DragStartSnapped = snapped;
                 m_HandleSign = 1; // default direction; can be flipped with scroll
                 evt.Use();
