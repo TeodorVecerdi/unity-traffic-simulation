@@ -1,3 +1,4 @@
+using Sirenix.OdinInspector;
 using TrafficSimulation.Core.Maths;
 using Unity.Mathematics;
 using UnityEngine;
@@ -5,7 +6,8 @@ using UnityEngine;
 namespace TrafficSimulation.RoadGraph.Authoring.Grid;
 
 public sealed class GridManager : MonoBehaviour {
-    [SerializeField] private GridSettings m_Settings = null!;
+    [SerializeField, Required, InlineEditor]
+    private GridSettings m_Settings = null!;
     [SerializeField] private Vector3 m_Origin = Vector3.zero;
     [SerializeField] private Vector3 m_Normal = Vector3.up;
 
