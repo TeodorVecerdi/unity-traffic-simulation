@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: TrafficSimulation.RoadGraph::TrafficSimulation.RoadGraph.Authoring.Grid.GridSettings
   m_CellSize: 1
   m_MajorLineEvery: 10
-  m_MinorLineColor: {r: 1, g: 1, b: 1, a: 0.08}
-  m_MajorLineColor: {r: 1, g: 1, b: 1, a: 0.18}
+  m_MinorLineColor: {r: 1, g: 1, b: 1, a: 0.03137255}
+  m_MajorLineColor: {r: 1, g: 1, b: 1, a: 0.1254902}
   m_AxisXColor: {r: 1, g: 0.25, b: 0.25, a: 0.9}
   m_AxisZColor: {r: 0.25, g: 0.75, b: 1, a: 0.9}
   m_SnapEnabled: 1
